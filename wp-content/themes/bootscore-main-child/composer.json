@@ -1,0 +1,10 @@
+{
+    "require": {
+        "vaites/php-apache-tika": "^1.3",
+        "setasign/fpdi": "^2.6",
+        "setasign/fpdf": "^1.8",
+        "spatie/pdf-to-image": "^1.2",
+        "tecnickcom/tcpdf": "^6.7",
+        "stripe/stripe-php": "^16.3"
+    }
+}

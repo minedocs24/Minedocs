@@ -1,0 +1,31 @@
+# Ignora tutto di default
+*
+
+# Non ignorare il file .gitignore stesso
+!.gitignore
+
+# Permetti la navigazione ricorsiva nelle cartelle intermedie
+!wp-content/
+!wp-content/plugins/
+!wp-content/themes/
+
+# Includi solo le cartelle specifiche
+!wp-content/themes/bootscore-main-child/**
+!wp-content/plugins/metodi-di-pagamento-con-punti/**
+!wp-content/plugins/woocommerce-gateway-stripe-redirect/**
+
+# Ignora tutto il resto in plugins e themes
+wp-content/themes/*
+!wp-content/themes/bootscore-main-child/
+
+wp-content/plugins/*
+!wp-content/plugins/plugin1/
+!wp-content/plugins/plugin2/
+
+# Ignora eventuali file temporanei o backup
+*.log
+*.bak
+*.tmp
+
+#Ignora uploads
+wp-content/uploads/

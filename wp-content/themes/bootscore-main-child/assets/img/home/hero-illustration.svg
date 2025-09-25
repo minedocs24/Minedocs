@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Sfondo con pattern -->
+    <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/>
+        </pattern>
+    </defs>
+    
+    <!-- Sfondo principale -->
+    <rect width="800" height="600" fill="url(#grid)"/>
+    
+    <!-- Documento principale -->
+    <g transform="translate(200,100)">
+        <!-- Pagina -->
+        <rect x="0" y="0" width="400" height="500" rx="10" fill="white" stroke="#ff8c00" stroke-width="2"/>
+        
+        <!-- Linee di testo -->
+        <g fill="#e0e0e0">
+            <rect x="40" y="40" width="320" height="20" rx="4"/>
+            <rect x="40" y="80" width="280" height="20" rx="4"/>
+            <rect x="40" y="120" width="300" height="20" rx="4"/>
+            <rect x="40" y="160" width="250" height="20" rx="4"/>
+            <rect x="40" y="200" width="320" height="20" rx="4"/>
+        </g>
+        
+        <!-- Simbolo € -->
+        <text x="200" y="300" font-family="Arial" font-size="120" fill="#ff8c00" text-anchor="middle">€</text>
+        
+        <!-- Elementi decorativi -->
+        <circle cx="50" cy="50" r="5" fill="#ff8c00"/>
+        <circle cx="70" cy="50" r="5" fill="#ff8c00"/>
+        <circle cx="90" cy="50" r="5" fill="#ff8c00"/>
+    </g>
+    
+    <!-- Grafico di crescita -->
+    <path d="M 100 450 L 200 400 L 300 350 L 400 300 L 500 250 L 600 200" 
+          stroke="#28a745" 
+          stroke-width="3" 
+          fill="none"/>
+    
+    <!-- Punti sul grafico -->
+    <g fill="#28a745">
+        <circle cx="100" cy="450" r="5"/>
+        <circle cx="200" cy="400" r="5"/>
+        <circle cx="300" cy="350" r="5"/>
+        <circle cx="400" cy="300" r="5"/>
+        <circle cx="500" cy="250" r="5"/>
+        <circle cx="600" cy="200" r="5"/>
+    </g>
+    
+    <!-- Icone di download -->
+    <g transform="translate(150,150)">
+        <path d="M 0 0 L 20 20 L 40 0 L 40 40 L 0 40 Z" fill="#ff8c00"/>
+        <path d="M 15 20 L 15 0" stroke="white" stroke-width="3"/>
+    </g>
+    
+    <!-- Testo decorativo -->
+    <text x="400" y="550" font-family="Arial" font-size="24" fill="#666" text-anchor="middle">
+        Guadagna Condividendo Conoscenza
+    </text>
+</svg> 
