@@ -19,8 +19,8 @@ wp-content/themes/*
 !wp-content/themes/bootscore-main-child/
 
 wp-content/plugins/*
-!wp-content/plugins/plugin1/
-!wp-content/plugins/plugin2/
+!wp-content/plugins/metodi-di-pagamento-con-punti/
+!wp-content/plugins/woocommerce-gateway-stripe-redirect/
 
 # Ignora eventuali file temporanei o backup
 *.log
