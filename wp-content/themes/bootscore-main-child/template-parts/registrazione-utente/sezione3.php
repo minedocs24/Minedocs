@@ -2,10 +2,10 @@
     $free_plan_info = [
         'nome' => 'MineDocs Free',
         'vantaggi' => [
-            '<img src="https://test.minedocs.it/test1/wp-content/themes/bootscore-main-child/assets/img/registrazione/Icone_Minedocs_V.svg" alt="Icona V" class="img-fluid" style="width: 35px; height: 35px;"> Accedi solo ai documenti condivisi',
-            '<img src="https://test.minedocs.it/test1/wp-content/themes/bootscore-main-child/assets/img/registrazione/Icone_Minedocs_X.svg" alt="Icona X" class="img-fluid" style="width: 35px; height: 35px;"> Accedi ai documenti Pro',
-            '<img src="https://test.minedocs.it/test1/wp-content/themes/bootscore-main-child/assets/img/registrazione/Icone_Minedocs_X.svg" alt="Icona X" class="img-fluid" style="width: 35px; height: 35px;"> Punti Pro',
-            '<img src="https://test.minedocs.it/test1/wp-content/themes/bootscore-main-child/assets/img/registrazione/Icone_Minedocs_X.svg" alt="Icona X" class="img-fluid" style="width: 35px; height: 35px;"> Studia con AI*'
+            '<img src="'.get_stylesheet_directory_uri().'/assets/img/registrazione/Icone_Minedocs_V.svg" alt="Icona V" class="img-fluid" style="width: 35px; height: 35px;"> Accedi solo ai documenti condivisi',
+            '<img src="'.get_stylesheet_directory_uri().'/assets/img/registrazione/Icone_Minedocs_X.svg" alt="Icona X" class="img-fluid" style="width: 35px; height: 35px;"> Accedi ai documenti Pro',
+            '<img src="'.get_stylesheet_directory_uri().'/assets/img/registrazione/Icone_Minedocs_X.svg" alt="Icona X" class="img-fluid" style="width: 35px; height: 35px;"> Punti Pro',
+            '<img src="'.get_stylesheet_directory_uri().'/assets/img/registrazione/Icone_Minedocs_X.svg" alt="Icona X" class="img-fluid" style="width: 35px; height: 35px;"> Studia con AI*'
         ]
     ];
 
@@ -66,9 +66,9 @@
                             <div class="text-center mb-4">
                                 <p class="card-text">Approfitta di tutti i vantaggi del piano Pro:</p>
                                 <ul class="list-unstyled">
-                                    <li><img src="https://test.minedocs.it/test1/wp-content/themes/bootscore-main-child/assets/img/registrazione/Icone_Minedocs_V.svg" alt="Icona V" class="img-fluid" style="width: 35px; height: 35px;"> Punti pro per acquistare documenti migliori</li>
-                                    <li><img src="https://test.minedocs.it/test1/wp-content/themes/bootscore-main-child/assets/img/registrazione/Icone_Minedocs_V.svg" alt="Icona V" class="img-fluid" style="width: 35px; height: 35px;"> Studia con AI per un apprendimento personalizzato*</li>
-                                    <li><img src="https://test.minedocs.it/test1/wp-content/themes/bootscore-main-child/assets/img/registrazione/Icone_Minedocs_V.svg" alt="Icona V" class="img-fluid" style="width: 35px; height: 35px;"> Genera quiz per testare le tue conoscenze*</li>
+                                    <li><img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/registrazione/Icone_Minedocs_V.svg" alt="Icona V" class="img-fluid" style="width: 35px; height: 35px;"> Punti pro per acquistare documenti migliori</li>
+                                    <li><img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/registrazione/Icone_Minedocs_V.svg" alt="Icona V" class="img-fluid" style="width: 35px; height: 35px;"> Studia con AI per un apprendimento personalizzato*</li>
+                                    <li><img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/registrazione/Icone_Minedocs_V.svg" alt="Icona V" class="img-fluid" style="width: 35px; height: 35px;"> Genera quiz per testare le tue conoscenze*</li>
                                 </ul>
                             </div>
                             

@@ -266,7 +266,7 @@ jQuery(document).ready(function($) {
                                 title="Recensisci" 
                                 data-title="${file.name}">
                                 <img src="${env_profilo_utente_documenti_acquistati.assets_url}img/user/Icone_Minedocs_review_white.svg" 
-                                     alt="Recensisci" width="24" height="24" />
+                                     alt="Recensisci" width="24" height="24" style="width: 24px; height: 24px; "/>
                              </button>`}
                     </div>
                 </td>

@@ -15,7 +15,7 @@ get_header();
             <div class="col-lg-6 text-center text-lg-start">
 
                 <div>
-                    <img src="https://test.minedocs.it/test1/wp-content/themes/bootscore-main-child/assets/img/logo/logo-solo-libro.svg"
+                    <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/logo/logo-solo-libro.svg"
                         class="img-fluid mb-4" style="max-width: 250px;">
                 </div>
                 <h1 class="display-4 fw-bold text-dark mb-3">Studia smart, sogna in grande!</h1>
