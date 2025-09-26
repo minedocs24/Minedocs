@@ -189,7 +189,7 @@ function valida_nazione( $nazione ) {
 
 function verifica_complessita_password($password) {
     $lunghezza_minima = 8;
-    $lunghezza_massima = 20;
+    $lunghezza_massima = 50;
     $deve_contenere_lettere = preg_match('/[a-zA-Z]/', $password);
     $deve_contenere_lettere_maiuscole = preg_match('/[A-Z]/', $password);
     $deve_contenere_numeri = preg_match('/\d/', $password);

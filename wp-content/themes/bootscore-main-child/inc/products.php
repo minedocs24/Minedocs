@@ -723,8 +723,6 @@ function get_prezzo_prodotto($post_id) {
     }
 }
 
-
-
 /**
  * Coupon unico con percentuali diverse per prodotto/variazione
  * Usa il filtro ufficiale dei coupon di WooCommerce.

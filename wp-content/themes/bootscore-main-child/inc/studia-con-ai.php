@@ -7,7 +7,6 @@ if (!defined('ABSPATH')) {
 // Includi le funzioni per la gestione della coda job
 require_once get_stylesheet_directory() . '/inc/studia-AI/coda-job.php';
 
-
 // Assicura che la costante della tabella job sia definita (se non caricata altrove)
 if (!defined('TABELLA_STUDIA_AI_JOBS')) {
     global $wpdb;

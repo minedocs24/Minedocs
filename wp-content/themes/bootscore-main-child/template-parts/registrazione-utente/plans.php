@@ -15,6 +15,7 @@
                 $query->the_post();
                 $prezzo_totale = get_post_meta(get_the_ID(), '_price', true);
                 $prezzo_mensile = ($slug === 'pro-trimestrale') ? $prezzo_totale / 3 : $prezzo_totale / 12;
+                $prezzo_mensile = round($prezzo_mensile, 2);
                 $cadenza = ($slug === 'pro-trimestrale') ? '3 mesi' : '12 mesi';
                 $slug_cadenza = ($slug === 'pro-trimestrale') ? 'trimestrale' : 'annuale';
                 $plans[] = [

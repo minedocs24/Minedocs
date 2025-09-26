@@ -650,24 +650,6 @@ function custom_coming_soon_redirect() {
     // Log iniziale
     error_log('custom_coming_soon_redirect triggered');
 
-    // IP ANDRE ALLOWED WITHAOT Cookie
-    if ($_SERVER['REMOTE_ADDR'] === '151.45.191.222' || $_SERVER['REMOTE_ADDR'] === '37.101.95.104') {
-        error_log('Access allowed for IP: 151.45.191.222');
-        return; // Permetti l'accesso
-    }
-
-    // IP ROBERTO ALLOWED WITHAOT Cookie
-    if ($_SERVER['REMOTE_ADDR'] === '151.50.1.204') {
-        error_log('Access allowed for Roberto');
-        return; // Permetti l'accesso
-    }
-
-    // IP Francesco ALLOWED WITHAOT Cookie
-    if ($_SERVER['REMOTE_ADDR'] === '81.56.22.152') {
-        error_log('Access allowed for Francesco');
-        return; // Permetti l'accesso
-    }
-
     // Verifica se il cookie di bypass è impostato
     if ( isset($_COOKIE['bypass_coming_soon']) && $_COOKIE['bypass_coming_soon'] === $secret_token ) {
         error_log('Bypass cookie found, allowing access');

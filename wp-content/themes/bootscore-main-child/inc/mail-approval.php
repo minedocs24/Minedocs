@@ -413,7 +413,7 @@ function reject_edit_product($product_id, $token){
 }
 
 
-function get_approve_edit_product_email_html($product, $edited_fields, $approval_link, $reject_link, $creator_nickname = '', $creator_email = ''){
+function get_approve_edit_product_email_html($product, $edited_fields, $approval_link, $reject_link){
     $product_info = get_product_taxonomy_info($product->ID);
     $product_info = $product_info['taxonomies'];
     $author = get_userdata($product->post_author);
@@ -706,7 +706,7 @@ function get_approve_product_email_html($product, $approval_link, $reject_link){
                 <p><strong>Nome prodotto:</strong> ' . $product->post_title . '</p>
                 <p><strong>Caricato dall`utente:</strong> ' . esc_html($uploader_nickname) . ' (' . esc_html($uploader_email) . ')</p>
                 <p><strong>Descrizione prodotto:</strong> ' . $product->post_content . '</p>';
-                
+
                 if ($is_update) {
                     $email_body .= '<h3>Confronto tra prodotto aggiornato e prodotto precedente:</h3>';
                     $email_body .= '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">';

@@ -318,8 +318,8 @@ function validate_upload_document_params($input) {
     }
 
     // valida il titolo in modo che non sia più lungo di 100 caratteri e non abbia caratteri speciali al suo interno
-    if (strlen($input['titolo']) > 100) {
-        $errors[] = "Il campo 'titolo' non può essere più lungo di 100 caratteri.";
+    if (strlen($input['titolo']) > 150) {
+        $errors[] = "Il campo 'titolo' non può essere più lungo di 150 caratteri.";
     }
     if (!preg_match('/^[a-zA-Z0-9\s\-()àèéìòùÀÈÉÌÒÙ\']+$/', $input['titolo'])) {
         $errors[] = "Il campo 'titolo' può contenere solo lettere, numeri, spazi, apici, parentesi tonde e lettere accentate.";
