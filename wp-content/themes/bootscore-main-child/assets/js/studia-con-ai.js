@@ -1132,6 +1132,72 @@ jQuery(document).ready(function($) {
             }
         }
     });
+
+    // ==================== TEST AJAX SEMPLIFICATI ====================
+    
+    function log(msg) {
+        const time = new Date().toLocaleTimeString();
+        $('#test-results').prepend(`<div>${time}: ${msg}</div>`);
+    }
+
+    // Test 1: Genera Mappa
+    $('#test-map').on('click', function() {
+        log('🔄 Testando generate_map...');
+        $.ajax({
+            url: env_studia_con_ai.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'generate_map',
+                nonce: env_studia_con_ai.nonce_generate_mappe || 'test',
+                file_id: 1
+            },
+            success: function(r) {
+                log(r.success ? '✅ generate_map OK' : '❌ generate_map ERR: ' + r.data.message);
+            },
+            error: function() {
+                log('❌ generate_map ERR: Connessione fallita');
+            }
+        });
+    });
+
+    // Test 2: Prezzo
+    $('#test-price').on('click', function() {
+        log('🔄 Testando get_dynamic_price...');
+        $.ajax({
+            url: env_studia_con_ai.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'get_dynamic_price',
+                nonce: env_studia_con_ai.nonce_get_dynamic_price,
+                file_id: 1
+            },
+            success: function(r) {
+                log(r.success ? '✅ get_dynamic_price OK: ' + r.data.points + ' punti' : '❌ get_dynamic_price ERR');
+            },
+            error: function() {
+                log('❌ get_dynamic_price ERR: Connessione fallita');
+            }
+        });
+    });
+
+    // Test 3: Flask (via PHP per evitare CORS)
+    $('#test-flask').on('click', function() {
+        log('🔄 Testando Flask...');
+        $.ajax({
+            url: env_studia_con_ai.ajax_url,
+            type: 'POST',
+            data: {
+                action: 'test_flask_health',
+                nonce: env_studia_con_ai.nonce
+            },
+            success: function(r) {
+                log(r.success ? '✅ Flask OK: Servizio attivo' : '❌ Flask ERR: ' + r.data.message);
+            },
+            error: function() {
+                log('❌ Flask ERR: Connessione fallita');
+            }
+        });
+    });
 });
 
 

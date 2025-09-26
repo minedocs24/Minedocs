@@ -51,11 +51,12 @@ get_header();
 get_template_part('template-parts/commons/custom-popup');
 
 // Definisci le variabili JavaScript dopo get_header()
-wp_enqueue_script('studia-con-ai-script', get_stylesheet_directory_uri() . '/assets/js/studia-con-ai.js', array('jquery'), null, true);
+wp_enqueue_script('studia-con-ai-script', get_stylesheet_directory_uri() . '/assets/js/', array('jquery'), null, true);
 wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
     'ajax_url' => admin_url('admin-ajax.php'),
     'nonce'    => wp_create_nonce('studia_con_ai_nonce'),
     'nonce_generate_summary' => wp_create_nonce('nonce_generate_summary'),
+    'nonce_generate_mappe' => wp_create_nonce('nonce_generate_mappe'),
     'nonce_get_dynamic_price' => wp_create_nonce('nonce_get_dynamic_price'),
     'nonce_summary_jobs' => wp_create_nonce('nonce_summary_jobs'),
     'nonce_document_details' => wp_create_nonce('nonce_document_details'),
@@ -63,6 +64,7 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
     'nonce_get_job_details' => wp_create_nonce('nonce_get_job_details'),
     'nonce_delete_job' => wp_create_nonce('nonce_delete_job'),
     'nonce_summary_download' => wp_create_nonce('nonce_summary_download'),
+    'flask_health_url' => getenv('FLASK_MAP_API_URL_HEALTH') ?: 'http://localhost:4997/health',
     'home_url' => home_url(),
     'document_id' => $document_id,
     'action' => $action,
@@ -364,6 +366,27 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
             </div>
         </div>
     </div>
+
+    <!-- Test AJAX Mappe (Solo Admin) -->
+    <?php if (current_user_can('administrator')): ?>
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-warning">
+                <div class="card-header bg-warning">
+                    <h6 class="mb-0">🧪 Test AJAX Mappe</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2 d-md-flex">
+                        <button id="test-map" class="btn btn-primary btn-sm">Test Genera Mappa</button>
+                        <button id="test-price" class="btn btn-info btn-sm">Test Prezzo</button>
+                        <button id="test-flask" class="btn btn-warning btn-sm">Test Flask</button>
+                    </div>
+                    <div id="test-results" class="mt-3 small text-muted"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <!-- Sezione "Le mie generazioni" -->
     <div class="row mt-4">

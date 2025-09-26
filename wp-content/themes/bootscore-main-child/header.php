@@ -49,16 +49,6 @@ if (is_user_logged_in()) {
 <html <?php language_attributes(); ?>>
 
 <head>
-
-<script type="text/javascript">
-var _iub = _iub || [];
-_iub.csConfiguration = {"askConsentAtCookiePolicyUpdate":true,"googleAdditionalConsentMode": true, "enableFadp":true,"enableLgpd":true,"fadpApplies":true,"floatingPreferencesButtonCaptionColor":"#FFFFFF","floatingPreferencesButtonColor":"#0099CC","floatingPreferencesButtonDisplay":"bottom-right","floatingPreferencesButtonZIndex":1099,"perPurposeConsent":true,"preferenceCookie":{"expireAfter":180},"reloadOnConsent":true,"siteId":3938705,"storage":{"useSiteId":true},"usPreferencesWidgetDisplay":"inline-center","cookiePolicyId":61111609,"lang":"it","banner":{"acceptButtonCaptionColor":"#FFFFFF","acceptButtonColor":"#0073CE","acceptButtonDisplay":true,"backgroundColor":"#FFFFFF","closeButtonDisplay":false,"customizeButtonCaptionColor":"#4D4D4D","customizeButtonColor":"#DADADA","customizeButtonDisplay":true,"explicitWithdrawal":true,"listPurposes":true,"ownerName":"minedocs.it","position":"float-bottom-center","rejectButtonCaptionColor":"#FFFFFF","rejectButtonColor":"#0073CE","rejectButtonDisplay":true,"showTitle":false,"showTotalNumberOfProviders":true,"textColor":"#000000"}};
-</script>
-<script type="text/javascript" src="https://cs.iubenda.com/autoblocking/3938705.js"></script>
-<script type="text/javascript" src="//cdn.iubenda.com/cs/iubenda_cs.js" charset="UTF-8" async></script>
-
-
-
     <meta charset="<?php bloginfo('charset'); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="profile" href="https://gmpg.org/xfn/11">
@@ -131,6 +121,9 @@ _iub.csConfiguration = {"askConsentAtCookiePolicyUpdate":true,"googleAdditionalC
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link" style="white-space: nowrap;" href="<?php echo PIANI_PRO_PAGE; ?>">Piani <span class="pro">Pro</span></a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" style="white-space: nowrap;" href="<?php echo CHI_SIAMO_PAGE; ?>">Chi Siamo</a>
                                 </li>
                             </ul>
                         </nav>

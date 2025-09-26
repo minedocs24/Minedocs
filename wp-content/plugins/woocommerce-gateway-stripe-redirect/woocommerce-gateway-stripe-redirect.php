@@ -144,9 +144,6 @@ function wc_stripe_redirect_init()
         }
 */
 
-        /*
-        Funzione che ottiene il coupon da un codice promozionale
-        */
         public function getCouponFromPromoCode($code) {
             try {
                 $stripe = new \Stripe\StripeClient(WC_Gateway_Stripe_Redirect::get_instance()->get_option('stripe_secret_key'));
@@ -170,18 +167,15 @@ function wc_stripe_redirect_init()
             return null;
         }
 
-        /*
-        Funzione che personalizza il codice promozionale per il prodotto
-        */
         public function customizeStripeCode($code, $product) {
 
-            if ($code == 'PROMOLANCIO25'){
+            if ($code == 'PROMOLANCIOPRO'){
                 if ($product && $product->get_sku() == SKU_ABBONAMENTO_30_GIORNI){
-                    return 'PROMOLANCIO2530';
+                    return 'PROMOLANCIOPRO30';
                 } elseif ($product && $product->get_sku() == SKU_ABBONAMENTO_90_GIORNI){
-                    return 'PROMOLANCIO2590';
+                    return 'PROMOLANCIOPRO90';
                 } elseif ($product && $product->get_sku() == SKU_ABBONAMENTO_365_GIORNI){
-                    return 'PROMOLANCIO25365';
+                    return 'PROMOLANCIOPRO365';
                 } else {
                     return $code;
                 }
@@ -274,6 +268,7 @@ function wc_stripe_redirect_init()
                 // Check if the price on Stripe matches the WooCommerce product price
                 //$product_price = $order->get_total() * 100; // Convert to cents
                 $product_price = get_post_meta($product_id, '_price', true) * 100;
+                //error_log('Product price: ' . $product_price);
                 if ($price_object->unit_amount != $product_price) {
                     // Create a new price on Stripe
                     $new_price = \Stripe\Price::create([
@@ -364,7 +359,7 @@ function wc_stripe_redirect_init()
                     ];
                 }
 
-                //error_log('SONO UNA FOTTUTA PAYMENT');
+                error_log('SONO UNA FOTTUTA PAYMENT');
                 $session = \Stripe\Checkout\Session::create([
                     'customer' => $customer->id,
                     'payment_method_types' => $this->get_option('stripe_payment_methods'),

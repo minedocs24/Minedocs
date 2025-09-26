@@ -25,7 +25,7 @@ get_header();
     <div class="col-lg-8 text-center text-lg-start">
 
 <div>
-    <img src="https://minedocs.it/wp-content/themes/bootscore-main-child/assets/img/logo/logo-solo-libro.svg"
+    <img src="https://test.minedocs.it/test1/wp-content/themes/bootscore-main-child/assets/img/logo/logo-solo-libro.svg"
         class="img-fluid mb-4" style="max-width: 250px;">
 </div>
 <h1 class="display-4 fw-bold text-dark mb-3">Diventa un Venditore su MineDocs!</h1>
@@ -258,7 +258,7 @@ get_header();
     <div class="divisore-sezioni"></div>
 
     <!-- Sezione Testimonianze -->
-    <!-- <section class="container my-5">
+    <section class="container my-5">
         <div class="text-center mb-5">
     <div class="d-inline-block px-3 py-1 rounded-pill bg-primary text-white bg-opacity-10 small mb-3">
                 Testimonianze
@@ -296,7 +296,7 @@ get_header();
                 </div>
             </div>
         </div>
-    </section> -->
+    </section>
 
 
     <!-- Sezione Call to Action -->

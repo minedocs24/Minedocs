@@ -66,7 +66,7 @@ $stato_approvazione = $args['stato_approvazione'];
 
                 <?php } ?>
             
-                <!-- Pulsante AI prominente -->
+            <!-- Pulsante AI prominente -->
             <?php if ($gia_acquistato || $post->post_author == get_current_user_id()): ?>
             <div class="flex-grow-0 me-3">
                 <button id="aiButton" class="btn btn-primary btn-ai-prominent" title="Studia con AI" data-bs-toggle="dropdown" aria-expanded="false">

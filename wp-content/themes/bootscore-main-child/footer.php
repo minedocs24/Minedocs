@@ -24,13 +24,8 @@
           <h5 class="documents-title" style="color: var(--primary);">Legal</h5>
           <ul class="nav flex-column">
             <li class="nav-item mb-2"><a href="<?php echo TERMINI_E_CONDIZIONI_PAGE;?>" class="nav-link p-0 text-dark">Termini e condizioni</a></li>
-            <!--  <li class="nav-item mb-2"><a href="https://www.iubenda.com/privacy-policy/61111609" class="nav-link p-0 text-dark">Privacy Policy</a></li>
-            <li class="nav-item mb-2"><a href="https://www.iubenda.com/privacy-policy/61111609/cookie-policy" class="nav-link p-0 text-dark">Cookie Policy</a></li> -->
-            <!-- Privacy Policy -->
-            <li class="nav-item mb-2"><a href="https://www.iubenda.com/privacy-policy/61111609" class="iubenda-white iubenda-noiframe iubenda-embed iubenda-noiframe " title="Privacy Policy ">Privacy Policy</a><script type="text/javascript">(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script></li>
-              <!-- Cookie Policy -->
-              <li class="nav-item mb-2"><a href="https://www.iubenda.com/privacy-policy/61111609/cookie-policy" class="iubenda-white iubenda-noiframe iubenda-embed iubenda-noiframe " title="Cookie Policy ">Cookie Policy</a><script type="text/javascript">(function (w,d) {var loader = function () {var s = d.createElement("script"), tag = d.getElementsByTagName("script")[0]; s.src="https://cdn.iubenda.com/iubenda.js"; tag.parentNode.insertBefore(s,tag);}; if(w.addEventListener){w.addEventListener("load", loader, false);}else if(w.attachEvent){w.attachEvent("onload", loader);}else{w.onload = loader;}})(window, document);</script></li>
-
+            <li class="nav-item mb-2"><a href="https://www.iubenda.com/privacy-policy/61111609" class="nav-link p-0 text-dark">Privacy Policy</a></li>
+            <li class="nav-item mb-2"><a href="https://www.iubenda.com/privacy-policy/61111609/cookie-policy" class="nav-link p-0 text-dark">Cookie Policy</a></li>
           </ul>
         </div>
 
@@ -63,8 +58,7 @@
         <p class="text-gray-600">Indirizzo: Via John Fitzgerald Kennedy 24, 70020 Bitritto (BA)</p>
       </div>
     </div>
-
-      </footer>
+  </footer>
   <!-- To top button -->
   <a href="#"
       class="<?= apply_filters('bootscore/class/footer/to_top_button', 'btn btn-primary shadow'); ?> position-fixed zi-1000 top-button"><i

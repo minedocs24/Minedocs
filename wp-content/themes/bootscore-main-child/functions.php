@@ -16,11 +16,6 @@ require_once __DIR__ . '/vendor/stripe/stripe-php/init.php';
 require_once __DIR__ . '/vendor/swiper/swiper_load.php';
 require_once __DIR__ . '/inc/load_template_part.php';
 
-require_once __DIR__ . '/inc/ruoli_utenti.php';
-// Google Tag Manager
-if (get_option('google_tag_manager_enabled') == '1') {
-    require_once __DIR__ . '/inc/google_tag_manager.php';
-}
 
 require_once __DIR__ . '/inc/log/transazioni.php';
 require_once __DIR__ . '/inc/log/transaction.class.php';
@@ -68,6 +63,7 @@ require_once __DIR__ . '/inc/studia-con-ai.php';
 require_once __DIR__ . '/inc/studia-AI/coda-job.php';
 require_once __DIR__ . '/inc/studia-AI/gestione-documenti.php';
 require_once __DIR__ . '/inc/studia-AI/callbacks.php';
+require_once __DIR__ . '/inc/studia-schemi-ai.php';
 
 use setasign\Fpdi\Tcpdf\Fpdi;
 // BEGIN ENQUEUE PARENT ACTION
@@ -645,62 +641,62 @@ function redirect_search_to_custom_page() {
 add_action('template_redirect', 'redirect_search_to_custom_page');
 
 
-// function custom_coming_soon_redirect() {
-//     // URL della pagina "Coming Soon" personalizzata
-//     $coming_soon_url = 'https://comingsoon.minedocs.it:8443/';
-//     // Token segreto per bypassare la modalità "Coming Soon"
-//     $secret_token = 'h687jGS6U';
+function custom_coming_soon_redirect() {
+    // URL della pagina "Coming Soon" personalizzata
+    $coming_soon_url = 'https://comingsoon.minedocs.it:8443/';
+    // Token segreto per bypassare la modalità "Coming Soon"
+    $secret_token = 'h687jGS6U';
 
-//     // Log iniziale
-//     error_log('custom_coming_soon_redirect triggered');
+    // Log iniziale
+    error_log('custom_coming_soon_redirect triggered');
 
-//     // IP ANDRE ALLOWED WITHAOT Cookie
-//     if ($_SERVER['REMOTE_ADDR'] === '151.45.191.222' || $_SERVER['REMOTE_ADDR'] === '37.101.95.104') {
-//         error_log('Access allowed for IP: 151.45.191.222');
-//         return; // Permetti l'accesso
-//     }
+    // IP ANDRE ALLOWED WITHAOT Cookie
+    if ($_SERVER['REMOTE_ADDR'] === '151.45.191.222' || $_SERVER['REMOTE_ADDR'] === '37.101.95.104') {
+        error_log('Access allowed for IP: 151.45.191.222');
+        return; // Permetti l'accesso
+    }
 
-//     // IP ROBERTO ALLOWED WITHAOT Cookie
-//     if ($_SERVER['REMOTE_ADDR'] === '151.50.1.204') {
-//         error_log('Access allowed for Roberto');
-//         return; // Permetti l'accesso
-//     }
+    // IP ROBERTO ALLOWED WITHAOT Cookie
+    if ($_SERVER['REMOTE_ADDR'] === '151.50.1.204') {
+        error_log('Access allowed for Roberto');
+        return; // Permetti l'accesso
+    }
 
-//     // IP Francesco ALLOWED WITHAOT Cookie
-//     if ($_SERVER['REMOTE_ADDR'] === '81.56.22.152') {
-//         error_log('Access allowed for Francesco');
-//         return; // Permetti l'accesso
-//     }
+    // IP Francesco ALLOWED WITHAOT Cookie
+    if ($_SERVER['REMOTE_ADDR'] === '81.56.22.152') {
+        error_log('Access allowed for Francesco');
+        return; // Permetti l'accesso
+    }
 
-//     // Verifica se il cookie di bypass è impostato
-//     if ( isset($_COOKIE['bypass_coming_soon']) && $_COOKIE['bypass_coming_soon'] === $secret_token ) {
-//         error_log('Bypass cookie found, allowing access');
-//         return; // L'utente ha già il cookie, permetti l'accesso
-//     }
+    // Verifica se il cookie di bypass è impostato
+    if ( isset($_COOKIE['bypass_coming_soon']) && $_COOKIE['bypass_coming_soon'] === $secret_token ) {
+        error_log('Bypass cookie found, allowing access');
+        return; // L'utente ha già il cookie, permetti l'accesso
+    }
 
-//     // Verifica se il parametro URL 'skip_maint' corrisponde al token segreto
-//     if ( isset($_GET['skip_maint']) && $_GET['skip_maint'] === $secret_token ) {
-//         error_log('URL parameter skip_maint matches secret token, setting bypass cookie');
-//         // Imposta un cookie per bypassare la modalità "Coming Soon" nelle visite future
-//         setcookie('bypass_coming_soon', $secret_token, time() + 3600 * 24 * 30, COOKIEPATH, COOKIE_DOMAIN);
-//         return; // Permetti l'accesso
-//     }
+    // Verifica se il parametro URL 'skip_maint' corrisponde al token segreto
+    if ( isset($_GET['skip_maint']) && $_GET['skip_maint'] === $secret_token ) {
+        error_log('URL parameter skip_maint matches secret token, setting bypass cookie');
+        // Imposta un cookie per bypassare la modalità "Coming Soon" nelle visite future
+        setcookie('bypass_coming_soon', $secret_token, time() + 3600 * 24 * 30, COOKIEPATH, COOKIE_DOMAIN);
+        return; // Permetti l'accesso
+    }
 
-//     // Se l'utente è un amministratore loggato, permetti l'accesso
-//     if ( current_user_can('manage_options') ) {
-//         error_log('User is an admin, allowing access');
-//         return;
-//     }
+    // Se l'utente è un amministratore loggato, permetti l'accesso
+    if ( current_user_can('manage_options') ) {
+        error_log('User is an admin, allowing access');
+        return;
+    }
 
-//     // Log di reindirizzamento
-//     error_log('Redirecting to Coming Soon page: ' . $coming_soon_url);
+    // Log di reindirizzamento
+    error_log('Redirecting to Coming Soon page: ' . $coming_soon_url);
 
-//     // Reindirizza tutti gli altri utenti alla pagina "Coming Soon"
-//     wp_redirect($coming_soon_url);
-//     header('Location: ' . $coming_soon_url);
-//     exit;
-// }
-// add_action('wp_head', 'custom_coming_soon_redirect', 1, 10);
+    // Reindirizza tutti gli altri utenti alla pagina "Coming Soon"
+    wp_redirect($coming_soon_url);
+    header('Location: ' . $coming_soon_url);
+    exit;
+}
+//add_action('wp_head', 'custom_coming_soon_redirect', 1, 10);
 
 function disabilita_rest_api_per_ospiti($result) {
     if (!current_user_can('administrator')) {
