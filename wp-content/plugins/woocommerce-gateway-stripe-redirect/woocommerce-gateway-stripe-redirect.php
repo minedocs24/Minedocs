@@ -359,7 +359,6 @@ function wc_stripe_redirect_init()
                     ];
                 }
 
-                error_log('SONO UNA FOTTUTA PAYMENT');
                 $session = \Stripe\Checkout\Session::create([
                     'customer' => $customer->id,
                     'payment_method_types' => $this->get_option('stripe_payment_methods'),
