@@ -188,7 +188,7 @@ wp_reset_postdata();
                                                 </div>
                                                 <?php } else { ?>
                                                 <button class="btn-actions btn-mini-scrivi-recensione" data-post-id="<?php echo esc_attr($file['id']); ?>" title="Recensisci" data-title="<?php echo esc_attr($file['name']); ?>">
-                                                    <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/user/sezione-documenti-caricati/Icone_Minedocs_review.svg"
+                                                    <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/user/Icone_Minedocs_review.svg"
                                                         alt="Apri" width="16" height="16" />
                                                 </button>
                                                 <?php } ?>

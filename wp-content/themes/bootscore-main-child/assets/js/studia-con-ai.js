@@ -1143,14 +1143,29 @@ jQuery(document).ready(function($) {
     // Test 1: Genera Mappa
     $('#test-map').on('click', function() {
         log('🔄 Testando generate_map...');
+        
+        const testData = {
+            action: 'generate_map',
+            nonce: env_studia_con_ai.nonce_generate_mappe || 'test'
+        };
+        
+        // Priorità: documento piattaforma > file caricato > file_id di test
+        if (env_studia_con_ai.document_id) {
+            testData.document_id = env_studia_con_ai.document_id;
+            log('📁 Usando documento piattaforma: ' + env_studia_con_ai.document_id);
+        } else if (window.studiaAiDocumentData && window.studiaAiDocumentData.file_id) {
+            testData.file_id = window.studiaAiDocumentData.file_id;
+            log('📁 Usando file caricato: ID ' + window.studiaAiDocumentData.file_id);
+        } else {
+            // Per il test, usa un file_id di test (deve esistere nel database)
+           // testData.file_id = 1; // Usa l'ID che hai visto prima
+            log('⚠️ Nessun file disponibile');
+        }
+        
         $.ajax({
             url: env_studia_con_ai.ajax_url,
             type: 'POST',
-            data: {
-                action: 'generate_map',
-                nonce: env_studia_con_ai.nonce_generate_mappe || 'test',
-                file_id: 1
-            },
+            data: testData,
             success: function(r) {
                 log(r.success ? '✅ generate_map OK' : '❌ generate_map ERR: ' + r.data.message);
             },
@@ -1160,25 +1175,6 @@ jQuery(document).ready(function($) {
         });
     });
 
-    // Test 2: Prezzo
-    $('#test-price').on('click', function() {
-        log('🔄 Testando get_dynamic_price...');
-        $.ajax({
-            url: env_studia_con_ai.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'get_dynamic_price',
-                nonce: env_studia_con_ai.nonce_get_dynamic_price,
-                file_id: 1
-            },
-            success: function(r) {
-                log(r.success ? '✅ get_dynamic_price OK: ' + r.data.points + ' punti' : '❌ get_dynamic_price ERR');
-            },
-            error: function() {
-                log('❌ get_dynamic_price ERR: Connessione fallita');
-            }
-        });
-    });
 
     // Test 3: Flask (via PHP per evitare CORS)
     $('#test-flask').on('click', function() {
