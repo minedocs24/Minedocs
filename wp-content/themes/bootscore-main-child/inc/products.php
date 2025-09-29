@@ -368,15 +368,9 @@ function aggiungi_punti_pro_all_utente($order_id) {
                
             }
 
-            error_log('[PROBLEMA SCONTO] order: ' . print_r($order, true));
             $discount_amount = $order->get_discount_total();
-            error_log('[PROBLEMA SCONTO] discount_amount: ' . $discount_amount);
-            error_log('[PROBLEMA SCONTO] pagato_totale_per_punti_pro: ' . $pagato_totale_per_punti_pro);
-            error_log('[PROBLEMA SCONTO] totale_punti_accreditati: ' . $totale_punti_accreditati);
-            error_log('[PROBLEMA SCONTO] VALORE_PUNTI_PRO: ' . VALORE_PUNTI_PRO);
             $ricarico_punti_pro = $pagato_totale_per_punti_pro - $totale_punti_accreditati * VALORE_PUNTI_PRO - $discount_amount;
             if($ricarico_punti_pro != 0) {
-                error_log('ricarico_punti_pro: ' . $ricarico_punti_pro);
                 do_action('trattieni_ricarico_su_punti_pro', $user_id, $ricarico_punti_pro, $data);
             }
             //do_action('trattieni_ricarico_su_punti_pro', $user_id, $ricarico_punti_pro, $data);
@@ -731,7 +725,7 @@ add_filter('woocommerce_coupon_get_discount_amount', 'mappa_sconti_per_prodotto'
 function mappa_sconti_per_prodotto($discount, $discounting_amount, $cart_item, $single, $coupon) {
 
     // 1) Limita al tuo codice coupon
-    $target_code = 'PROMOLANCIOPRO'; // <-- cambia qui
+    $target_code = 'PROMOLANCIO25'; // <-- cambia qui
     if (strcasecmp($coupon->get_code(), $target_code) !== 0) {
         return $discount; // lascia intatto ogni altro coupon
     }
@@ -739,8 +733,8 @@ function mappa_sconti_per_prodotto($discount, $discounting_amount, $cart_item, $
     // 2) Mappa percentuali per prodotto/variazione (ID => percentuale)
     //    usa l'ID della variazione se vuoi colpire solo quella, altrimenti l'ID del semplice/prodotto padre.
     $percentuali = [
-        SKU_ABBONAMENTO_30_GIORNI => 0.15, // Prodotto (o variazione) ID 123 → 15%
-        SKU_ABBONAMENTO_90_GIORNI => 0.10, // ID 456 → 10%
+        SKU_ABBONAMENTO_30_GIORNI => 0.13, // Prodotto (o variazione) ID 123 → 15%
+        SKU_ABBONAMENTO_90_GIORNI => 0.09, // ID 456 → 10%
         SKU_ABBONAMENTO_365_GIORNI => 0.05, // ID 789 → 5%
     ];
 
@@ -765,5 +759,4 @@ function mappa_sconti_per_prodotto($discount, $discounting_amount, $cart_item, $
     $precision = wc_get_price_decimals();
     return round($custom_discount, $precision);
 }
-
 
