@@ -274,7 +274,6 @@ function wc_stripe_redirect_init()
                 // Check if the price on Stripe matches the WooCommerce product price
                 //$product_price = $order->get_total() * 100; // Convert to cents
                 $product_price = get_post_meta($product_id, '_price', true) * 100;
-                //error_log('Product price: ' . $product_price);
                 if ($price_object->unit_amount != $product_price) {
                     // Create a new price on Stripe
                     $new_price = \Stripe\Price::create([
