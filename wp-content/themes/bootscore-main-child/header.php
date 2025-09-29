@@ -49,7 +49,7 @@ if (is_user_logged_in()) {
 <html <?php language_attributes(); ?>>
 
 <head>
-    
+
 <script type="text/javascript">
 var _iub = _iub || [];
 _iub.csConfiguration = {"askConsentAtCookiePolicyUpdate":true,"googleAdditionalConsentMode": true, "enableFadp":true,"enableLgpd":true,"fadpApplies":true,"floatingPreferencesButtonCaptionColor":"#FFFFFF","floatingPreferencesButtonColor":"#0099CC","floatingPreferencesButtonDisplay":"bottom-right","floatingPreferencesButtonZIndex":1099,"perPurposeConsent":true,"preferenceCookie":{"expireAfter":180},"reloadOnConsent":true,"siteId":3938705,"storage":{"useSiteId":true},"usPreferencesWidgetDisplay":"inline-center","cookiePolicyId":61111609,"lang":"it","banner":{"acceptButtonCaptionColor":"#FFFFFF","acceptButtonColor":"#0073CE","acceptButtonDisplay":true,"backgroundColor":"#FFFFFF","closeButtonDisplay":false,"customizeButtonCaptionColor":"#4D4D4D","customizeButtonColor":"#DADADA","customizeButtonDisplay":true,"explicitWithdrawal":true,"listPurposes":true,"ownerName":"minedocs.it","position":"float-bottom-center","rejectButtonCaptionColor":"#FFFFFF","rejectButtonColor":"#0073CE","rejectButtonDisplay":true,"showTitle":false,"showTotalNumberOfProviders":true,"textColor":"#000000"}};

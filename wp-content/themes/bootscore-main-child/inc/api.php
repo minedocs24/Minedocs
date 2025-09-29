@@ -166,13 +166,16 @@ function handle_upload_document_api(WP_REST_Request $request) {
             'thumbnail_data' => create_thumbnail($file_id)
         );
 
-        $product_id = create_document($params);
+        $product_hash_id = create_document($params);
+
+        $product_id = get_product_id_by_hash($product_hash_id);
+        $permalink = get_permalink($product_id);
         
         if (is_wp_error($product_id)) {
             return new WP_REST_Response(['message' => $product_id->get_error_message()], 400);
         }
         
-        return new WP_REST_Response(['message' => 'Documento caricato con successo', 'product_id' => $product_id], 201);
+        return new WP_REST_Response(['message' => 'Documento caricato con successo', 'product_id' => $product_id, 'permalink' => $permalink], 201);
         
     } catch (Exception $e) {
         error_log('Errore nell\'API upload document: ' . $e->getMessage());
