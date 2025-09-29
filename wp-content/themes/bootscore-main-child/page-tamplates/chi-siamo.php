@@ -125,24 +125,31 @@ get_header(); ?>
                         <p class="lead">Un viaggio di due anni che ha trasformato l'apprendimento universitario</p>
                         <div class="chi-siamo-timeline">
                             <div class="chi-siamo-timeline-item">
-                                <div class="chi-siamo-timeline-date">2022</div>
+                                <div class="chi-siamo-timeline-date">2023</div>
                                 <div class="chi-siamo-timeline-content">
                                     <h5>Nascita del Progetto</h5>
-                                    <p>LML nasce dall'idea di rivoluzionare la formazione universitaria attraverso la tecnologia.</p>
+                                    <p>Minedocs nasce dall'idea di rivoluzionare la formazione attraverso la tecnologia.</p>
                                 </div>
                             </div>
                             <div class="chi-siamo-timeline-item">
-                                <div class="chi-siamo-timeline-date">2023</div>
+                                <div class="chi-siamo-timeline-date">2024</div>
                                 <div class="chi-siamo-timeline-content">
                                     <h5>Primi Risultati</h5>
                                     <p>Raggiungiamo i primi 500 studenti attivi e iniziamo a collaborare con diverse università.</p>
                                 </div>
                             </div>
                             <div class="chi-siamo-timeline-item">
-                                <div class="chi-siamo-timeline-date">2024</div>
+                                <div class="chi-siamo-timeline-date">2025</div>
                                 <div class="chi-siamo-timeline-content">
                                     <h5>Innovazione e Crescita</h5>
-                                    <p>Introduciamo strumenti di IA e superiamo i 1000 studenti attivi sulla piattaforma.</p>
+                                    <p>Introduciamo strumenti di IA, superiamo i 1000 studenti attivi sulla piattaforma e raggiungiamo i 1500 documenti pubblicati.</p>
+                                </div>
+                            </div>
+                            <div class="chi-siamo-timeline-item">
+                                <!-- <div class="chi-siamo-timeline-date"></div> -->
+                                <div class="chi-siamo-timeline-content">
+                                    <h5>Il Futuro</h5>
+                                    <p>Continuiamo a innovare e a crescere, per portare il nostro progetto al massimo.</p>
                                 </div>
                             </div>
                         </div>
@@ -209,7 +216,7 @@ get_header(); ?>
     <section class="chi-siamo-features">
         <div class="container">
             <div class="chi-siamo-section-header text-center">
-                <h2>Le Nostre Funzionalità</h2>
+                <h2>I Nostri Servizi</h2>
                 <p class="lead">Strumenti innovativi per un apprendimento efficace</p>
             </div>
             <div class="row">
@@ -278,7 +285,7 @@ get_header(); ?>
                 <h2>Unisciti alla Rivoluzione dell'Apprendimento</h2>
                 <p class="lead">Scopri come Minedocs può trasformare la tua esperienza universitaria</p>
                 <div class="chi-siamo-cta-buttons">
-                    <a href="<?php echo home_url('/registrazione'); ?>" class="btn btn-primary btn-lg">Inizia Ora</a>
+                    <a href="<?php echo home_url('/login'); ?>" class="btn btn-primary btn-lg">Inizia Ora</a>
                     <a href="<?php echo home_url('/contatti'); ?>" class="btn btn-outline-primary btn-lg">Contattaci</a>
                 </div>
             </div>

@@ -144,6 +144,9 @@ function wc_stripe_redirect_init()
         }
 */
 
+        /*
+        Funzione che ottiene il coupon da un codice promozionale
+        */
         public function getCouponFromPromoCode($code) {
             try {
                 $stripe = new \Stripe\StripeClient(WC_Gateway_Stripe_Redirect::get_instance()->get_option('stripe_secret_key'));
@@ -167,15 +170,18 @@ function wc_stripe_redirect_init()
             return null;
         }
 
+        /*
+        Funzione che personalizza il codice promozionale per il prodotto
+        */
         public function customizeStripeCode($code, $product) {
 
-            if ($code == 'PROMOLANCIOPRO'){
+            if ($code == 'PROMOLANCIO25'){
                 if ($product && $product->get_sku() == SKU_ABBONAMENTO_30_GIORNI){
-                    return 'PROMOLANCIOPRO30';
+                    return 'PROMOLANCIO2530';
                 } elseif ($product && $product->get_sku() == SKU_ABBONAMENTO_90_GIORNI){
-                    return 'PROMOLANCIOPRO90';
+                    return 'PROMOLANCIO2590';
                 } elseif ($product && $product->get_sku() == SKU_ABBONAMENTO_365_GIORNI){
-                    return 'PROMOLANCIOPRO365';
+                    return 'PROMOLANCIO25365';
                 } else {
                     return $code;
                 }
