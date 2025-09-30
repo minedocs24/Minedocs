@@ -24,6 +24,7 @@ if (!defined('TABELLA_STUDIA_AI_JOBS')) {
  */
 // -----------------GESTISCE LA GENERAZIONE MAPPA CONCETTUALE-----------------
 function handle_generate_map() {
+    error_log('handle_generate_map');
     /* Utente carica documento --> genera job in coda --> invia job a Flask --> Flask genera mappa --> Flask invia risultato --> job completato --> ritorna risultato
       1. Verifica che l'utente sia loggato.
       2. Controlla il nonce per sicurezza.
@@ -44,22 +45,7 @@ function handle_generate_map() {
     // Controlla il nonce per la sicurezza ajax (Se proviene o meno da front-end legittimo)
     check_ajax_referer('nonce_generate_mappe', 'nonce');
 
-    // Recupera il file
-     $file = $_FILES['document'];
-
-     // Verifica il tipo di file (PDF o Word) 
-     /*$allowed_types = array('application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-     if (!in_array($file['type'], $allowed_types)) {
-         wp_send_json_error(array('message' => 'Tipo di file non supportato'));
-         return;
-     }
- 
-     // Verifica dimensione massima (10MB)
-     $max_file_size = 10 * 1024 * 1024; // 10MB
-     if ($file['size'] > $max_file_size) {
-         wp_send_json_error(array('message' => 'Il file eccede le dimensioni massime consentite (10MB)'));
-         return;
-     }*/
+    parse_str($_POST['config'], $config);
 
     // Controlla se il documento è già presente in piattaforma
     if (isset($_POST['document_id']) && !empty($_POST['document_id'])) {
@@ -80,21 +66,62 @@ function handle_generate_map() {
         }
         
         $file_id = intval($file_anteprima_id);
+    // }  elseif (isset($_POST['file_id']) && intval($_POST['file_id']) > 0) {
+    //     // Usa file_id di test senza upload
+    //     $file_id = intval($_POST['file_id']);
+    
+    // } elseif (isset($_FILES['document'])) {
+    //     // Upload reale
+    //     $file = $_FILES['document'];
+    //     // verifica tipo, dimensione
+    //     $file_id = intval($_POST['file_id']);
+    // } else {
+    //     wp_send_json_error(['message' => 'Nessun file caricato']);
+    //     return;
     } else {
         // Documento caricato tramite upload
         if (!isset($_POST['file_id'])) {
-            wp_send_json_error(['message' => 'File del documento non trovato']);
+            wp_send_json_error(array('message' => 'File del documento non trovato'));
             return;
         }
-        $file_id = intval($_POST['file_id']);
-    }
 
-    // Recupera il percorso del file sul server
-    $file_path = get_attached_file($file_id);
-    if (!$file_path || !file_exists($file_path)) {
-        wp_send_json_error(['message' => 'File del documento non trovato']);
-        return;
+        $file_id = intval($_POST['file_id']);
+        $file_path = get_attached_file($file_id);
+
+        if (!$file_path || !file_exists($file_path)) {
+            wp_send_json_error(array('message' => 'File del documento non trovato'));
+            return;
+        }
     }
+        
+    // Verifica il tipo di file (PDF o Word) 
+    // $allowed_types = array('application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    // if (!in_array($file['type'], $allowed_types)) {
+    //     wp_send_json_error(array('message' => 'Tipo di file non supportato'));
+    //     return;
+    // }
+    
+    // // Verifica dimensione massima (10MB)
+    // $max_file_size = 10 * 1024 * 1024; // 10MB
+    // if ($file['size'] > $max_file_size) {
+    //     wp_send_json_error(array('message' => 'Il file eccede le dimensioni massime consentite (10MB)'));
+    //     return;
+    // }
+    
+    //TO REMOVE
+    // // Per i file caricati, usa file_id se disponibile
+    // if (!isset($_POST['file_id'])) {
+    //     wp_send_json_error(['message' => 'File del documento non trovato']);
+    //     return;
+    // }
+    // $file_id = intval($_POST['file_id']);
+    
+    // // Recupera il percorso del file sul server
+    // $file_path = get_attached_file($file_id);
+    // if (!$file_path || !file_exists($file_path)) {
+    //     wp_send_json_error(['message' => 'File del documento non trovato']);
+    //     return;
+    // }
 
     // Calcola il costo in punti PRO lato server
     $points_cost = ai_calcola_prezzo_punti_per_file($file_id);
@@ -136,14 +163,20 @@ function handle_generate_map() {
         $html_message .= '<tr><td><strong>Utente</strong></td><td>' . esc_html($user_email) . ' (ID: ' . intval($user_id) . ')</td></tr>';
         $html_message .= '<tr><td><strong>Dettagli errore</strong></td><td>' . esc_html($error_details) . '</td></tr>';
         $html_message .= '</table>';
-        $html_message .= '<p>Si prega di verificare lo stato del servizio Flask e riavviarlo se necessario.</p>';
+        $html_message .= '<p>Si prega di verificare lo stato del servizio Flask MindMap e riavviarlo se necessario.</p>';
         $html_message .= '</div>';
 
         // Invio Email in caso di errore
-        /*
         $headers = array('Content-Type: text/html; charset=UTF-8');
-        $to = implode(',', array_column($admins, 'user_email'));
-        wp_mail($to, $subject, $html_message, $headers);*/
+
+        if (!empty($admins)) {
+            foreach ($admins as $admin) {
+                $to = isset($admin->user_email) ? $admin->user_email : '';
+                if (!empty($to)) {
+                    wp_mail($to, $subject, $html_message, $headers);
+                }
+            }
+        }
 
         error_log('Flask health check failed: ' . $error_details);
 
@@ -152,7 +185,7 @@ function handle_generate_map() {
     }
 
     // Inizializzazione
-    $config = array();
+    // $config = array();
     
 
     // Creazione job in coda, invio job a Flask e salvataggio costo punti
@@ -178,12 +211,43 @@ function handle_generate_map() {
         }
 
         // Recupera il tipo di richiesta
-        $request_type = isset($config['request_type']) ? $config['request_type'] : 'map';
-        //$descrizione = 'AI: Generazione ' . ($request_type === 'map' ? 'mappa' : $request_type);
+        $request_type = isset($config['request_type']) ? $config['request_type'] : 'mindmap';
+        //$descrizione = 'AI: Generazione ' . ($request_type === 'mindmap' ? 'Mappa concettuale' : $request_type);
         
+        // Determina il nome del file (prodotto della piattaforma o file caricato dall'utente)
+        $file_name_for_log = '';
+        try {
+            // Se il file è associato a un prodotto della piattaforma
+            if (function_exists('get_product_id_by_file_id')) {
+                $maybe_product = get_product_id_by_file_id($file_id);
+                if ($maybe_product) {
+                    $prod = get_post($maybe_product);
+                    if ($prod && !empty($prod->post_title)) {
+                        $file_name_for_log = $prod->post_title;
+                    }
+                }
+            }
+
+            // Se non trovato come prodotto, prova a leggere il titolo dell'allegato
+            if (empty($file_name_for_log)) {
+                $attachment = get_post($file_id);
+                if ($attachment && !empty($attachment->post_title)) {
+                    $file_name_for_log = $attachment->post_title;
+                }
+            }
+
+            // Fallback: usa il nome del file dal percorso
+            if (empty($file_name_for_log)) {
+                $file_name_for_log = basename($file_path);
+            }
+        } catch (Exception $e) {
+            // se qualcosa va storto, fallback al basename
+            $file_name_for_log = basename($file_path);
+        }
+
         // Crea array per il log
         $data_log = array(
-            'description' => 'AI: Generazione mappa concettuale',
+            'description' => 'AI: Generazione mappa concettuale per "' . sanitize_text_field($file_name_for_log) . '"',
             'hidden_to_user' => false,
         );
 
@@ -199,21 +263,28 @@ function handle_generate_map() {
 
     $existing_job = studia_ai_find_existing_map($file_id, $config, $request_type);
 
-   $message = 'Generazione mappa avvenuta con successo. Puoi continuare a navigare sul sito e controllare lo stato nella sezione "Le mie generazioni".';
+    $message = 'Generazione mappa avvenuta con successo. Puoi continuare a navigare sul sito e controllare lo stato nella sezione "Le mie generazioni".';
 
-   wp_send_json_success(array(
-    'job_id' => $result,
-    'message' => $message,
-    'is_duplicate' => $existing_job ? true : false
-   ));
+    wp_send_json_success(array(
+        'job_id' => $result,
+        'message' => $message,
+        'is_duplicate' => $existing_job ? true : false
+    ));
 }
 
-// -----------------INVILA IL JOB AL SERVER FLASK-----------------
+// -----------------INVIA JOB AL SERVER FLASK-----------------
 function send_map_job_to_flask($job_id, $file_id, $config) {
     $file_path = get_attached_file($file_id);
 
     // Endpoint corretto
-    $flask_url = getenv('FLASK_mappe_API_URL');
+    $flask_url = getenv('FLASK_MAP_API_URL');
+    
+    // Verifica che l'URL sia configurato
+    if (empty($flask_url)) {
+        error_log('FLASK_MAP_API_URL non configurato');
+        studia_ai_update_job_status($job_id, 'error', array('error_message' => 'URL Flask non configurato'));
+        return false;
+    }
 
     /* Credenziali Basic Auth
     $username = 'admin';
@@ -222,24 +293,47 @@ function send_map_job_to_flask($job_id, $file_id, $config) {
 
     // Prepara il payload come richiesto dal servizio Python
     $payload = array(
-        'file_path' => $file_path,
+        'path' => $file_path,
         'job_id' => $job_id,
         'callback_url' => home_url('/wp-admin/admin-ajax.php?action=map_completed')
     );
 
-    // Invia la richiesta POST
+    // Invia la richiesta POST con gestione errori
     $response = wp_remote_post($flask_url, array(
         'body' => json_encode($payload),
         'headers' => array(
             'Content-Type' => 'application/json'
             //'Authorization' => 'Basic ' . $auth
         ),
-        'timeout' => 10,
-        'blocking' => false // Non attendere la risposta
+        'timeout' => 5, 
+        'blocking' => false // Non attendere la risposta 
     ));
-    // Log per debug
-    error_log('Flask data: ' . json_encode($payload));
-    error_log('Flask response: ' . print_r($response, true));
+
+    // // Gestione errori di connessione
+    // if (is_wp_error($response)) {
+    //     $error_message = 'Errore di connessione a Flask: ' . $response->get_error_message();
+    //     error_log($error_message);
+    //     studia_ai_update_job_status($job_id, 'error', array('error_message' => $error_message));
+    //     return false;
+    // }
+
+    // // Controlla il codice di risposta HTTP
+    // $http_code = wp_remote_retrieve_response_code($response);
+    // $body = wp_remote_retrieve_body($response);
+    
+    // error_log('Flask response code: ' . $http_code);
+    // error_log('Flask response body: ' . $body);
+
+    // if ($http_code < 200 || $http_code >= 300) {
+    //     $error_message = 'Flask ha restituito errore HTTP ' . $http_code . ': ' . $body;
+    //     error_log($error_message);
+    //     studia_ai_update_job_status($job_id, 'error', array('error_message' => $error_message));
+    //     return false;
+    // }
+
+    // Se arriviamo qui, la richiesta è andata a buon fine
+    error_log('Job inviato a Flask con successo');
+    return true;
 }
 
 
@@ -255,18 +349,19 @@ function create_map_generation_job($file_id, $config) {
         return new WP_Error('file_not_found', 'File non trovato');
     }
 
-    $request_type = 'mappe-ai';
+    $request_type = 'mindmap';
     if (isset($config['request_type'])) {
         $request_type = $config['request_type'];
     }
 
-        // Controlla se esiste già una mappa per questo file
+    // Controlla se esiste già una mappa per questo file
     $existing_job = studia_ai_find_existing_map($file_id, $config, $request_type);
     if ($existing_job) {
         // Crea un job duplicato che riutilizza la mappa esistente
         return studia_ai_create_duplicate_job($user_id, $file_id, $config, $existing_job, $request_type);
     }
 
+    // Non esiste una mappa con questa configurazione, creane una nuova
     $job_id = studia_ai_insert_job(
         $user_id,
         $request_type,
@@ -281,7 +376,13 @@ function create_map_generation_job($file_id, $config) {
     }
 
     //Invia il job a Flask
-    send_map_job_to_flask($job_id, $file_id, $config);
+    $flask_result = send_map_job_to_flask($job_id, $file_id, $config);
+    
+    // Se l'invio a Flask fallisce, il job è già stato marcato come errore
+    if (!$flask_result) {
+        error_log('Invio job a Flask fallito per job_id: ' . $job_id);
+        return new WP_Error('flask_send_failed', 'Impossibile inviare il job a Flask');
+    }
 
     return $job_id;
 }
@@ -290,51 +391,84 @@ function create_map_generation_job($file_id, $config) {
 
 // -----------------GESTISCE IL CALLBACK DA FLASK QUANDO UNA MAPPA È COMPLETATA-----------------
 function handle_map_completed() {
-    if (!isset($_POST['job_id']) || !isset($_POST['status'])) {
+    $raw_input = file_get_contents('php://input');
+    error_log('Callback Flask ricevuto per mappa: ' . $raw_input);
+
+    $data = $_POST;
+    if (empty($data) && !empty($raw_input)) {
+        $json_data = json_decode($raw_input, true);
+        if ($json_data) {
+            $data = $json_data;
+            error_log('Callback Flask: dati JSON decodificati: ' . print_r($data, true));
+        }
+    }
+
+    if (!isset($data['job_id']) || !isset($data['status'])) {
         wp_send_json_error(['message' => 'Parametri mancanti']);
         return;
     }
-    
-    // Recupera i parametri
-    $job_id = intval($_POST['job_id']);
-    $status = sanitize_text_field($_POST['status']);
-    
-    $additional_data = array();
-    
-    // Se il job è completato, salva il file
-    if ($status === 'completed') {
-        // Se è presente result-file (percorso temporaneo) salva il file PNG
-        if (isset($_POST['result_file'])) {
-            $temp_file = sanitize_text_field($_POST['result_file']);
-            $final_path = save_map_png_file($temp_file, $job_id);
 
-            // Se il salvataggio è riuscito, aggiorna i dati del job
-            if ($final_path) {
-                $additional_data['result_file'] = $final_path;
-                $additional_data['result_url'] = str_replace(
-                    wp_upload_dir()['basedir'], 
-                    wp_upload_dir()['baseurl'], 
-                    $final_path
-                );
+    $job_id = intval($data['job_id']);
+    $status = sanitize_text_field($data['status']);
+    $additional_data = array();
+
+    if ($status === 'completed') {
+        if (isset($data['png_file'])) {
+            error_log('Callback Flask: png_file: ' . $data['png_file']);
+            $png_file = sanitize_text_field($data['png_file']);
+            error_log('Callback Flask: png_file_absolute: ' . $png_file);
+            $png_file_absolute = $png_file;
+
+            // Crea URL di download per il PDF (assumendo che sia accessibile via web)
+            $pdf_url = '';
+            if ($png_file) {
+                // Costruisci l'URL assumendo che i file siano serviti da Flask
+                $pdf_url = 'http://localhost:4999/download/' . urlencode($png_file);
+            }
+            error_log('Callback Flask: pdf_url: ' . $pdf_url);
+            // Prepara i dati aggiuntivi per l'aggiornamento
+            $additional_data = array(
+                'result_file' => $png_file,
+                'result_url' => $pdf_url
+            );
+            
+            // Aggiorna il job come completato
+            $result = studia_ai_update_job_status($job_id, 'completed', $additional_data);
+
+            if ($result) {
+                wp_send_json_success([
+                    'message' => 'Job completato con successo',
+                    'job_id' => $job_id,
+                    'pdf_path' => $png_file,
+                    'pdf_url' => $pdf_url
+                ]);
             } else {
-                // Se il salvataggio fallisce, marca come errore
-                $additional_data['error_message'] = 'Errore nel salvataggio del file PNG';
-                $status = 'error';
+                error_log("Errore nell'aggiornamento del job $job_id");
+                wp_send_json_error(['message' => "Errore nell'aggiornamento del job $job_id"]);
             }
         }
-    }
-    // Salva messaggio di errore
-    if ($status === 'error' && isset($_POST['error_message'])) {
-        $additional_data['error_message'] = sanitize_text_field($_POST['error_message']);
-    }
-
-    // Aggiorna lo stato del job nel database
-    $result = studia_ai_update_job_status($job_id, $status, $additional_data);
-    
-    if ($result){
-        wp_send_json_success(['message' => 'Job aggiornato con successo']);
+        
     } else {
-        wp_send_json_error(['message' => 'Errore nell\'aggiornamento del job']);
+        // Errore nell'elaborazione
+        $error_message = 'Errore sconosciuto nell\'elaborazione';
+        
+        // Aggiorna il job come errore
+        $additional_data = array(
+            'error_message' => $error_message
+        );
+        
+        $result = studia_ai_update_job_status($job_id, 'error', $additional_data);
+        if ($result) {
+            error_log("Job $job_id completato con errore: $error_message");
+            wp_send_json_success([
+                'message' => 'Job aggiornato con errore',
+                'job_id' => $job_id,
+                'error' => $error_message
+            ]);
+        } else {
+            error_log("Errore nell'aggiornamento del job $job_id con errore");
+            wp_send_json_error(['message' => "Errore nell'aggiornamento del job $job_id"]);
+        }
     }
 
 }
@@ -343,9 +477,9 @@ function handle_map_completed() {
 
 // -----------------MODIFICA LA DIRECTORY DI UPLOAD PER I FILE DELLE MAPPE-----------------
 function upload_directory_protected_maps_files($upload){
-    $upload['path'] = $upload['basedir'] . '/protected/ai/maps' . $upload['subdir'];
+    $upload['path'] = $upload['basedir'] . '/protected/ai-maps' . $upload['subdir'];
     // URL visibile nel browser
-    $upload['url'] = $upload['baseurl'] . '/protected/ai/maps' . $upload['subdir'];
+    $upload['url'] = $upload['baseurl'] . '/protected/ai-maps' . $upload['subdir'];
 
     $dir = $upload['path'];
     if (!is_dir($dir)) {
@@ -390,10 +524,9 @@ function handle_test_flask_health() {
     // Controlla il nonce per la sicurezza ajax
     check_ajax_referer('studia_con_ai_nonce', 'nonce');
 
-    $flask_url = getenv('FLASK_MAP_API_URL_HEALTH') ?: 'http://localhost:4997/health';
-    
+    $flask_url = getenv('FLASK_MAP_API_URL_HEALTH');
     $response = wp_remote_get($flask_url, array(
-        'timeout' => 5,
+        'timeout' => 10,
         'blocking' => true
     ));
 

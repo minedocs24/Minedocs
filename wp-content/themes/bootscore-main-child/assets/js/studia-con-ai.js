@@ -32,7 +32,7 @@ jQuery(document).ready(function($) {
     let totalJobs = 0;
     
     // Lista delle azioni disponibili
-    const availableActions = ['riassunto', 'summary'];
+    const availableActions = ['riassunto', 'summary', 'mappa', 'mindmap'];
     
     // Gestione per documenti già presenti in piattaforma
     if (typeof env_studia_con_ai !== 'undefined' && env_studia_con_ai.has_document) {
@@ -570,14 +570,27 @@ jQuery(document).ready(function($) {
 
         // Prepara i dati per la generazione
         const formData = new FormData();
-        formData.append('action', 'generate_summary');
+
+        // Determina l'azione AJAX e il nonce in base all'azione selezionata (es: "mappa"/"mindmap")
+        const selectedAction = env_studia_con_ai && env_studia_con_ai.action ? env_studia_con_ai.action : 'riassunto';
+        let ajaxAction = 'generate_summary';
+        // fallback nonce per la generazione di summary
+        let ajaxNonce = env_studia_con_ai.nonce_generate_summary;
+
+        if (selectedAction === 'mappa' || selectedAction === 'mindmap') {
+            ajaxAction = 'generate_map';
+            // supporta diversi nomi di nonce eventualmente presenti
+            ajaxNonce = env_studia_con_ai.nonce_generate_mappe || env_studia_con_ai.nonce_generate_mindmap || env_studia_con_ai.nonce_generate_summary;
+        }
+
+        formData.append('action', ajaxAction);
         // Se i parametri sono nascosti, non inviare il form di configurazione
         if (!env_studia_con_ai.hide_params) {
             formData.append('config', $('#studia-ai-summary-form').serialize());
         } else {
             formData.append('config', '');
         }
-        formData.append('nonce', env_studia_con_ai.nonce_generate_summary);
+        formData.append('nonce', ajaxNonce);
         
         // Aggiungi i dati del documento se disponibili
         if (window.studiaAiDocumentData) {
@@ -829,6 +842,12 @@ jQuery(document).ready(function($) {
     // Funzione globale per cambiare pagina
     window.changePage = function(page) {
         loadSummaryJobs(page);
+    };
+
+    // Funzione per scaricare una mappa
+    window.downloadMap = function(jobId) {
+        const downloadUrl = env_studia_con_ai.ajax_url + '?action=download_map&job_id=' + jobId;
+        window.open(downloadUrl, '_blank');
     };
 
     function getRequestTypeLabel(requestType) {
@@ -1173,6 +1192,12 @@ jQuery(document).ready(function($) {
                 log('❌ generate_map ERR: Connessione fallita');
             }
         });
+
+        if (job.status === 'completed') {
+            buttons += ` <button class="btn btn-sm btn-success" onclick="downloadMap(${job.jobId})">
+                <i class="fas fa-download"></i> Scarica
+            </button>`;
+        }
     });
 
 
