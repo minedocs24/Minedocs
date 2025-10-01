@@ -75,4 +75,4 @@ if ( is_cart() ) {
       <?php } ?>
     </div>
   </button>
-<?php } ?>
+<?php }

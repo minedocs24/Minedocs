@@ -25,4 +25,3 @@ shuffle($questions);
 $selected_questions = array_slice($questions, 0, $num_questions);
 
 echo json_encode($selected_questions);
-?>

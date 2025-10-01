@@ -964,4 +964,3 @@ function render_genera_hash_utenti_page() {
 
 
 
-?>

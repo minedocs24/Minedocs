@@ -72,6 +72,3 @@ if (!is_user_logged_in()) {
 <?php 
     get_template_part('modals/confirm_edit_document');
     get_template_part('modals/prohibit_edit_document');
-?>
-
-

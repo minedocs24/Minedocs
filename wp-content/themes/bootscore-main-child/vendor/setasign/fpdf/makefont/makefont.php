@@ -444,4 +444,3 @@ if(PHP_SAPI=='cli')
 		$subset = true;
 	MakeFont($fontfile, $enc, $embed, $subset);
 }
-?>

@@ -62,4 +62,3 @@ get_template_part('inc/email-templates/minedocs-email-header', null, array(
     'subject' => $subject,
     'body' => $body
 ));
-?>

@@ -637,4 +637,3 @@ add_action('wp_ajax_nopriv_delete_user_account', 'delete_user_account');
 
 
 
-?>

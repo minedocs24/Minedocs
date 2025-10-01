@@ -1,5 +1,3 @@
-
-
 <?php
 
 
@@ -152,4 +150,3 @@ function log_woocommerce_review($comment_ID, $comment) {
 
 
 
-?>

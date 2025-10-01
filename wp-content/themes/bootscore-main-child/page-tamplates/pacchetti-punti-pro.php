@@ -192,4 +192,3 @@ $products_names = array_map(function ($product_id) {
 <?php
 get_footer();
 
-?>

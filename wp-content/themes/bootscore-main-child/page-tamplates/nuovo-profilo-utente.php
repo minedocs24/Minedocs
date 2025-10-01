@@ -72,5 +72,4 @@ $menu_data = get_dati_menu_profilo_utente();
 </div>
 
 
-<?php get_footer(  ); ?>
-
+<?php get_footer(  ); 

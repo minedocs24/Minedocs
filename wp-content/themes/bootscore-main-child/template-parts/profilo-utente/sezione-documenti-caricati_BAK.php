@@ -207,4 +207,3 @@ wp_reset_postdata();
 <?php 
     get_template_part('modals/confirm_edit_document');
     get_template_part('modals/prohibit_edit_document');
-?>

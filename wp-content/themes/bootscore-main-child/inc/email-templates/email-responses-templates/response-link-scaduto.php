@@ -13,4 +13,3 @@ $args = array(
 );
 
 include(get_stylesheet_directory() . '/inc/email-templates/minedocs-email-header.php');
-?> 

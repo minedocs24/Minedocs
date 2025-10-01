@@ -11,4 +11,4 @@ get_header();
 
 get_template_part( 'template-parts/commons/contatti' );
 
-get_footer(); ?>
+get_footer(); 

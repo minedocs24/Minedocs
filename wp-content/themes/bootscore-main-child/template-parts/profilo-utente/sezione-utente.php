@@ -50,8 +50,3 @@ error_log("nome istituto: " . $nome_istituto);
 </div>
 
 <?php
-
-// function get_user_istituto($user_id) {
-//     return "AO"
-// }
-?>
