@@ -502,7 +502,7 @@ jQuery(document).ready(function($) {
                     <i class="fas fa-info-circle me-2"></i>
                     <div>
                         <strong>Analisi del documento in corso...</strong><br>
-                        <small>Mentre il sistema analizza il tuo documento, puoi già configurare le opzioni del riassunto qui sotto.</small>
+                        <small>Il sistema sta analizzando il tuo documento. A breve potrai procedere con la generazione ${env_studia_con_ai.action && env_studia_con_ai.action.toLowerCase() === 'mappa' ? 'della' : 'del'} ${env_studia_con_ai.action}</small>
                     </div>
                 </div>
             </div>

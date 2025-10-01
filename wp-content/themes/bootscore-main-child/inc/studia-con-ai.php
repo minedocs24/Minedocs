@@ -148,6 +148,12 @@ function analyze_document_with_tika($file_path) {
 
         // Ottieni i metadati del file
         $metadata = $client->getMetadata($file_path);
+
+        // Verifica che il file sia un PDF
+        if ($metadata->mime !== 'application/pdf') {
+            stop_tika_server($tika_port);
+            return new WP_Error('invalid_file_type', 'Tipo di file non permesso');
+        }
         
         // Ottieni il testo del documento per contare le parole
         $text = $client->getText($file_path);
