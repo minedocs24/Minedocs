@@ -81,4 +81,3 @@ $faq_json = json_decode( get_faqs_json());
 
 <?php
 get_footer();
-?>

@@ -39,4 +39,4 @@ if (!empty($terms) && !is_wp_error($terms)) : ?>
             <?php endforeach; ?>
         </select>
     </div>
-<?php endif; ?>
+<?php endif;

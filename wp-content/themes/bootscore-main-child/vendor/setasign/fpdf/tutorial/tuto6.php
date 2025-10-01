@@ -110,4 +110,3 @@ $pdf->SetLeftMargin(45);
 $pdf->SetFontSize(14);
 $pdf->WriteHTML($html);
 $pdf->Output();
-?>

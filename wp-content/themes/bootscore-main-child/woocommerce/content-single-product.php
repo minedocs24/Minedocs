@@ -108,4 +108,4 @@ if (has_term('documento', 'tipo_prodotto', $post->ID)) {
 
 <?php do_action( 'woocommerce_after_single_product' ); ?>
 
-<?php } ?>
+<?php } 

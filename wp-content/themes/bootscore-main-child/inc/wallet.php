@@ -1,5 +1,3 @@
-
-
 <?php
 function create_wallet_table() {
     global $wpdb;

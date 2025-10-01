@@ -29,4 +29,3 @@ function getPostAverageRating($post_ids) {
     return $reviews_on_user_documents_rating_avg;
 }
 
-?>

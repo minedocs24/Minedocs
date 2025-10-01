@@ -67,4 +67,3 @@ function get_document_details() {
 add_action('wp_ajax_get_document_details', 'get_document_details');
 add_action('wp_ajax_nopriv_get_document_details', 'get_document_details');
 
-?>
