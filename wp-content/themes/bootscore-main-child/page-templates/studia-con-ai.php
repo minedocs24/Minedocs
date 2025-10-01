@@ -366,26 +366,6 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
         </div>
     </div>
 
-    <!-- Test AJAX Mappe (Solo Admin) -->
-    <?php if (current_user_can('administrator')): ?>
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card border-warning">
-                <div class="card-header bg-warning">
-                    <h6 class="mb-0">🧪 Test AJAX Mappe</h6>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2 d-md-flex">
-                        <button id="test-map" class="btn btn-primary btn-sm">Test Genera Mappa</button>
-                        <button id="test-flask" class="btn btn-warning btn-sm">Test Flask</button>
-                    </div>
-                    <div id="test-results" class="mt-3 small text-muted"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <?php endif; ?>
-
     <!-- Sezione "Le mie generazioni" -->
     <div class="row mt-4">
         <div class="col-12">

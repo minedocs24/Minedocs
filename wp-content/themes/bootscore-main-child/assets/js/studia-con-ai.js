@@ -844,12 +844,6 @@ jQuery(document).ready(function($) {
         loadSummaryJobs(page);
     };
 
-    // Funzione per scaricare una mappa
-    window.downloadMap = function(jobId) {
-        const downloadUrl = env_studia_con_ai.ajax_url + '?action=download_map&job_id=' + jobId;
-        window.open(downloadUrl, '_blank');
-    };
-
     function getRequestTypeLabel(requestType) {
         const types = {
             'summary': 'Riassunto',
@@ -1150,74 +1144,6 @@ jQuery(document).ready(function($) {
                 button.removeClass('btn-outline-secondary').addClass('btn-secondary');
             }
         }
-    });
-
-    // ==================== TEST AJAX SEMPLIFICATI ====================
-    
-    function log(msg) {
-        const time = new Date().toLocaleTimeString();
-        $('#test-results').prepend(`<div>${time}: ${msg}</div>`);
-    }
-
-    // Test 1: Genera Mappa
-    $('#test-map').on('click', function() {
-        log('🔄 Testando generate_map...');
-        
-        const testData = {
-            action: 'generate_map',
-            nonce: env_studia_con_ai.nonce_generate_mappe || 'test'
-        };
-        
-        // Priorità: documento piattaforma > file caricato > file_id di test
-        if (env_studia_con_ai.document_id) {
-            testData.document_id = env_studia_con_ai.document_id;
-            log('📁 Usando documento piattaforma: ' + env_studia_con_ai.document_id);
-        } else if (window.studiaAiDocumentData && window.studiaAiDocumentData.file_id) {
-            testData.file_id = window.studiaAiDocumentData.file_id;
-            log('📁 Usando file caricato: ID ' + window.studiaAiDocumentData.file_id);
-        } else {
-            // Per il test, usa un file_id di test (deve esistere nel database)
-           // testData.file_id = 1; // Usa l'ID che hai visto prima
-            log('⚠️ Nessun file disponibile');
-        }
-        
-        $.ajax({
-            url: env_studia_con_ai.ajax_url,
-            type: 'POST',
-            data: testData,
-            success: function(r) {
-                log(r.success ? '✅ generate_map OK' : '❌ generate_map ERR: ' + r.data.message);
-            },
-            error: function() {
-                log('❌ generate_map ERR: Connessione fallita');
-            }
-        });
-
-        if (job.status === 'completed') {
-            buttons += ` <button class="btn btn-sm btn-success" onclick="downloadMap(${job.jobId})">
-                <i class="fas fa-download"></i> Scarica
-            </button>`;
-        }
-    });
-
-
-    // Test 3: Flask (via PHP per evitare CORS)
-    $('#test-flask').on('click', function() {
-        log('🔄 Testando Flask...');
-        $.ajax({
-            url: env_studia_con_ai.ajax_url,
-            type: 'POST',
-            data: {
-                action: 'test_flask_health',
-                nonce: env_studia_con_ai.nonce
-            },
-            success: function(r) {
-                log(r.success ? '✅ Flask OK: Servizio attivo' : '❌ Flask ERR: ' + r.data.message);
-            },
-            error: function() {
-                log('❌ Flask ERR: Connessione fallita');
-            }
-        });
     });
 });
 

@@ -19,9 +19,9 @@ $s = isset($_GET['search']) ? $_GET['search'] : '';
                                aria-label="Ricerca" 
                                name="search" 
                                value="<?php echo esc_attr($s); ?>">
-                        <button type="submit" 
-                            class="btn btn-primary search-button" 
-                            id="search-button">
+                        <button type="button" 
+                                class="btn btn-primary search-button" 
+                                id="search-button">
                             Cerca
                         </button>
                     </div>
