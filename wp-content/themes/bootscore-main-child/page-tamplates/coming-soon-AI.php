@@ -3,7 +3,6 @@
  * Template Name: Coming Soon AI
  * Description: Una pagina "Coming Soon" personalizzata per WordPress.
  */
-
 ?>
 
 

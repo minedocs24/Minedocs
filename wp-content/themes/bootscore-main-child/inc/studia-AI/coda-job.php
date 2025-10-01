@@ -626,6 +626,43 @@ function studia_ai_find_existing_summary($file_id, $config, $request_type = 'sum
     return null;
 }
 
+function studia_ai_find_existing_map($file_id, $config, $request_type = 'mappe-ai') {
+    global $wpdb;
+    
+    $table_name = TABELLA_STUDIA_AI_JOBS;
+    
+    // Normalizza la configurazione per il confronto
+    $normalized_config = studia_ai_normalize_config($config);
+    $config_json = json_encode($normalized_config);
+    
+    $sql = $wpdb->prepare(
+        "SELECT * FROM $table_name 
+         WHERE file_id = %d 
+         AND request_type = %s 
+         AND status = 'completed' 
+         AND result_file IS NOT NULL 
+         AND result_file != ''
+         ORDER BY completed_at DESC",
+        $file_id,
+        $request_type
+    );
+    
+    $existing_jobs = $wpdb->get_results($sql, ARRAY_A);
+    
+    // Controlla se esiste un job con configurazione identica
+    foreach ($existing_jobs as $job) {
+        $job_config = json_decode($job['request_params'], true);
+        $normalized_job_config = studia_ai_normalize_config($job_config);
+        $job_config_json = json_encode($normalized_job_config);
+        
+        if ($config_json === $job_config_json) {
+            return $job;
+        }
+    }
+    
+    return null;
+}
+
 /**
  * Normalizza la configurazione per confronti consistenti
  */

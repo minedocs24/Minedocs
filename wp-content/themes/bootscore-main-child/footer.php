@@ -63,8 +63,7 @@
         <p class="text-gray-600">Indirizzo: Via John Fitzgerald Kennedy 24, 70020 Bitritto (BA)</p>
       </div>
     </div>
-
-      </footer>
+  </footer>
   <!-- To top button -->
   <a href="#"
       class="<?= apply_filters('bootscore/class/footer/to_top_button', 'btn btn-primary shadow'); ?> position-fixed zi-1000 top-button"><i

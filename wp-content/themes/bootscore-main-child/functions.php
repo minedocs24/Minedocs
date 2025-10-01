@@ -68,6 +68,7 @@ require_once __DIR__ . '/inc/studia-con-ai.php';
 require_once __DIR__ . '/inc/studia-AI/coda-job.php';
 require_once __DIR__ . '/inc/studia-AI/gestione-documenti.php';
 require_once __DIR__ . '/inc/studia-AI/callbacks.php';
+require_once __DIR__ . '/inc/studia-schemi-ai.php';
 
 use setasign\Fpdi\Tcpdf\Fpdi;
 // BEGIN ENQUEUE PARENT ACTION
@@ -653,24 +654,6 @@ add_action('template_redirect', 'redirect_search_to_custom_page');
 
 //     // Log iniziale
 //     error_log('custom_coming_soon_redirect triggered');
-
-//     // IP ANDRE ALLOWED WITHAOT Cookie
-//     if ($_SERVER['REMOTE_ADDR'] === '151.45.191.222' || $_SERVER['REMOTE_ADDR'] === '37.101.95.104') {
-//         error_log('Access allowed for IP: 151.45.191.222');
-//         return; // Permetti l'accesso
-//     }
-
-//     // IP ROBERTO ALLOWED WITHAOT Cookie
-//     if ($_SERVER['REMOTE_ADDR'] === '151.50.1.204') {
-//         error_log('Access allowed for Roberto');
-//         return; // Permetti l'accesso
-//     }
-
-//     // IP Francesco ALLOWED WITHAOT Cookie
-//     if ($_SERVER['REMOTE_ADDR'] === '81.56.22.152') {
-//         error_log('Access allowed for Francesco');
-//         return; // Permetti l'accesso
-//     }
 
 //     // Verifica se il cookie di bypass è impostato
 //     if ( isset($_COOKIE['bypass_coming_soon']) && $_COOKIE['bypass_coming_soon'] === $secret_token ) {

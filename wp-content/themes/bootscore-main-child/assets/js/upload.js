@@ -8,21 +8,6 @@ function handleDrop(event, callback) {
     handleFile(event.dataTransfer.files[0], callback);
 }
 
-//funzione che ogni secondo aumenta la progress bar di 10%
-function increaseProgressBar() {
-    const progressBar = document.querySelector('.progress-bar');
-    let width = 10;
-    const interval = setInterval(() => {
-        if (width >= 100) {
-            clearInterval(interval);
-        } else {
-            width += 10;
-            progressBar.style.width = width + '%';
-            progressBar.textContent = width + '%';
-        }
-    }, 1000);
-}
-
 function handleFile(file, callback) {
     //console.log(file);
     if (!file) {

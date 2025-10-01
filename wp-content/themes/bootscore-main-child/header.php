@@ -132,6 +132,9 @@ _iub.csConfiguration = {"askConsentAtCookiePolicyUpdate":true,"googleAdditionalC
                                 <li class="nav-item">
                                     <a class="nav-link" style="white-space: nowrap;" href="<?php echo PIANI_PRO_PAGE; ?>">Piani <span class="pro">Pro</span></a>
                                 </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" style="white-space: nowrap;" href="<?php echo CHI_SIAMO_PAGE; ?>">Chi Siamo</a>
+                                </li>
                             </ul>
                         </nav>
 

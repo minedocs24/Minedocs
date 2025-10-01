@@ -28,8 +28,8 @@ function getActionLabel($action) {
 $document_id = isset($_GET['document_id']) ? sanitize_text_field($_GET['document_id']) : '';
 $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'riassunto';
 
-// Lista delle azioni disponibili (solo riassunto per ora)
-$available_actions = array('riassunto', 'summary');
+// Lista delle azioni disponibili
+$available_actions = array('riassunto', 'summary', 'mappa');
 
 // Se l'azione non è disponibile, reindirizza a riassunto
 if (!in_array($action, $available_actions)) {
@@ -56,6 +56,7 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
     'ajax_url' => admin_url('admin-ajax.php'),
     'nonce'    => wp_create_nonce('studia_con_ai_nonce'),
     'nonce_generate_summary' => wp_create_nonce('nonce_generate_summary'),
+    'nonce_generate_mappe' => wp_create_nonce('nonce_generate_mappe'),
     'nonce_get_dynamic_price' => wp_create_nonce('nonce_get_dynamic_price'),
     'nonce_summary_jobs' => wp_create_nonce('nonce_summary_jobs'),
     'nonce_document_details' => wp_create_nonce('nonce_document_details'),
@@ -93,11 +94,11 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
                 </div>
 
                 <!-- Crea una mappa concettuale -->
-                <div class="studia-ai-feature-item <?php echo ($action === 'mappa' || $action === 'mindmap') ? 'active' : ''; ?> coming-soon" data-action="mappa">
+                <div class="studia-ai-feature-item <?php echo ($action === 'mappa' || $action === 'mindmap') ? 'active' : ''; ?>" data-action="mappa">
                     <div class="studia-ai-feature-icon">
                         <i class="fas fa-project-diagram"></i>
                     </div>
-                    <div class="studia-ai-feature-text">Crea una mappa concettuale <span class="badge bg-secondary">Coming Soon</span></div>
+                    <div class="studia-ai-feature-text">Crea una mappa concettuale </div>
                 </div>
 
                 <!-- Evidenzia nel documento -->

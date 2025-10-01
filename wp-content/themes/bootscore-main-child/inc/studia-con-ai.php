@@ -148,6 +148,12 @@ function analyze_document_with_tika($file_path) {
 
         // Ottieni i metadati del file
         $metadata = $client->getMetadata($file_path);
+
+        // Verifica che il file sia un PDF
+        if ($metadata->mime !== 'application/pdf') {
+            stop_tika_server($tika_port);
+            return new WP_Error('invalid_file_type', 'Tipo di file non permesso');
+        }
         
         // Ottieni il testo del documento per contare le parole
         $text = $client->getText($file_path);
@@ -245,6 +251,7 @@ function handle_generate_summary() {
         if (isset($_POST['request_type'])) {
             $config['request_type'] = sanitize_text_field($_POST['request_type']);
         }
+        error_log('Request type: ' . $config['request_type']);
         
     } else {
         // Documento caricato tramite upload
@@ -301,7 +308,7 @@ function handle_generate_summary() {
         $html_message .= '<tr><td><strong>Utente</strong></td><td>' . esc_html($user_email) . ' (ID: ' . intval($user_id) . ')</td></tr>';
         $html_message .= '<tr><td><strong>Dettagli errore</strong></td><td>' . esc_html($error_details) . '</td></tr>';
         $html_message .= '</table>';
-        $html_message .= '<p>Si prega di verificare lo stato del servizio Flask e riavviarlo se necessario.</p>';
+        $html_message .= '<p>Si prega di verificare lo stato del servizio Flask Summary e riavviarlo se necessario.</p>';
         $html_message .= '</div>';
 
         $headers = array('Content-Type: text/html; charset=UTF-8');
@@ -852,10 +859,6 @@ add_action('wp_ajax_nopriv_generate_summary', 'handle_generate_summary');
 add_action('wp_ajax_get_summary_jobs', 'handle_get_summary_jobs');
 add_action('wp_ajax_nopriv_get_summary_jobs', 'handle_get_summary_jobs');
 
-// Callback da Flask quando il riassunto è completato
-// add_action('wp_ajax_summary_completed', 'handle_summary_completed');
-// add_action('wp_ajax_nopriv_summary_completed', 'handle_summary_completed');
-
 // Gestione aggiuntiva dei job
 add_action('wp_ajax_get_job_details', 'handle_get_job_details');
 add_action('wp_ajax_nopriv_get_job_details', 'handle_get_job_details');
@@ -1079,48 +1082,6 @@ function get_product_id_by_file_id($file_id) {
 }
 
 /**
- * Gestisce il callback da Flask quando un riassunto è completato
- */
-function handle_summary_completed() {
-    // Verifica che la richiesta venga da Flask
-    if (!isset($_POST['job_id']) || !isset($_POST['status'])) {
-        wp_send_json_error(['message' => 'Parametri mancanti']);
-        return;
-    }
-    
-    $job_id = intval($_POST['job_id']);
-    $status = sanitize_text_field($_POST['status']);
-    $user_id = intval($_POST['user_id']);
-    
-    // Prepara i dati aggiuntivi per l'aggiornamento
-    $additional_data = array();
-    
-    // Se il job è completato, salva il file
-    if ($status === 'completed') {
-        if (isset($_POST['result_file'])) {
-            $additional_data['result_file'] = sanitize_text_field($_POST['result_file']);
-        }
-        if (isset($_POST['result_url'])) {
-            $additional_data['result_url'] = sanitize_text_field($_POST['result_url']);
-        }
-    }
-    
-    // Se c'è un errore, salva il messaggio
-    if ($status === 'error' && isset($_POST['error_message'])) {
-        $additional_data['error_message'] = sanitize_text_field($_POST['error_message']);
-    }
-    
-    // Aggiorna lo stato del job nel database
-    $result = studia_ai_update_job_status($job_id, $status, $additional_data);
-    
-    if ($result) {
-        wp_send_json_success(['message' => 'Job aggiornato con successo']);
-    } else {
-        wp_send_json_error(['message' => 'Errore nell\'aggiornamento del job']);
-    }
-}
-
-/**
  * Genera un URL di download sicuro per un riassunto generato
  */
 function get_summary_download_url($job_id, $user_id) {
@@ -1139,73 +1100,127 @@ function get_summary_download_url($job_id, $user_id) {
     $token = hash('sha256', $job_id . $user_id . 'summary_download_secure');
     
     // Costruisci l'URL di download sicuro
-    $download_url = home_url('/wp-admin/admin-ajax.php?action=download_summary&job_id=' . $job_id . '&token=' . $token);
-    
+    $download_url = home_url('/wp-admin/admin-ajax.php?action=download_ai&job_id=' . $job_id . '&token=' . $token);
+    error_log('Download URL: ' . $download_url);
     return $download_url;
 }
 
+
 /**
- * Gestisce il download sicuro dei riassunti generati
+ * Gestisce il download sicuro dei file generati da AI (Riassunti, Mappe, etc.)
  */
-function handle_summary_download() {
+function handle_ai_download() {
+    error_log('handle_ai_download');
     // Verifica che l'utente sia loggato
     if (!is_user_logged_in()) {
         wp_die('Devi essere loggato per scaricare questo file.');
     }
-    
+
     // Verifica i parametri
     if (!isset($_GET['job_id']) || !isset($_GET['token'])) {
         wp_die('Parametri mancanti.');
     }
-    
+
     $job_id = intval($_GET['job_id']);
     $user_id = get_current_user_id();
     $token = sanitize_text_field($_GET['token']);
-    
-    // Verifica il token
+
+    // Verifica il token (stesso schema utilizzato per i summary)
     $expected_token = hash('sha256', $job_id . $user_id . 'summary_download_secure');
     if ($token !== $expected_token) {
         wp_die('Token non valido.');
     }
-    
+
     // Ottieni il job dal database
     $job = studia_ai_get_job($job_id);
     if (!$job || $job['user_id'] != $user_id) {
         wp_die('Accesso negato.');
     }
-    
+
     // Verifica che il job sia completato
     if ($job['status'] !== 'completed') {
-        wp_die('Il riassunto non è ancora pronto per il download.');
+        wp_die('Il file non è ancora pronto per il download.');
     }
-    
+
     // Verifica che esista il file risultato
-    if (empty($job['result_file']) || !file_exists($job['result_file'])) {
+    if (empty($job['result_file'])) {
         wp_die('File non trovato.');
     }
-    
-    // Ottieni il nome del file originale per il download
-    $file_name = basename($job['result_file']);
-    if (empty($file_name)) {
-        $file_name = 'riassunto_' . $job_id . '.txt';
+
+    $file_path = $job['result_file'];
+
+    // Se il risultato è un URL remoto, prova a scaricarlo e salvarlo localmente
+    if (preg_match('#^https?://#i', $file_path)) {
+        $tmp = wp_tempnam();
+        $response = wp_remote_get($file_path, array('timeout' => 60, 'stream' => true, 'filename' => $tmp));
+        if (is_wp_error($response) || wp_remote_retrieve_response_code($response) !== 200) {
+            error_log('Errore scaricando immagine remota per job ' . $job_id . ': ' . (is_wp_error($response) ? $response->get_error_message() : wp_remote_retrieve_response_message($response)));
+            wp_die('Impossibile recuperare il file remoto.');
+        }
+        // Sposta il file temporaneo nella directory protetta e ottieni path definitivo
+        $saved = save_map_png_file($tmp, $job_id);
+        if (is_wp_error($saved) || !$saved) {
+            error_log('Salvataggio PNG remoto fallito per job ' . $job_id);
+            wp_die('Impossibile salvare il file.');
+        }
+        $file_path = $saved;
     }
-    
-    // Imposta gli header per il download del file
+
+    // Normalizza percorso
+    $file_path = wp_normalize_path($file_path);
+
+    if (!file_exists($file_path)) {
+        error_log('File non esiste per download map: ' . $file_path . ' (job ' . $job_id . ')');
+        wp_die('File non trovato.');
+    }
+
+    // Determina il nome del file per il download
+    $file_name = basename($file_path);
+    if (empty($file_name)) {
+        $file_name = 'mappa_' . $job_id . '.png';
+    }
+
+    // Rileva MIME type reale
+    if (function_exists('finfo_open')) {
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $file_path);
+        finfo_close($finfo);
+    } else {
+        $mime = 'application/octet-stream';
+    }
+
+    // Disabilita la visualizzazione degli errori e pulisci buffer per evitare output extra
+    @ini_set('display_errors', '0');
+    while (ob_get_level()) {
+        ob_end_clean();
+    }
+
+    // Log dei primi byte (debug temporaneo)
+    $fh = fopen($file_path, 'rb');
+    if ($fh) {
+        $header = fread($fh, 8);
+        fclose($fh);
+        error_log('Map PNG header hex for job ' . $job_id . ': ' . bin2hex($header));
+    }
+
+    // Invia headers corretti per PNG/binary
     header('Content-Description: File Transfer');
-    header('Content-Type: application/octet-stream');
+    header('Content-Type: ' . $mime);
     header('Content-Disposition: attachment; filename="' . $file_name . '"');
+    header('Content-Transfer-Encoding: binary');
     header('Expires: 0');
     header('Cache-Control: must-revalidate');
     header('Pragma: public');
-    header('Content-Length: ' . filesize($job['result_file']));
-    
-    // Leggi il file e invialo al browser
-    readfile($job['result_file']);
+    header('Content-Length: ' . filesize($file_path));
+
+    // Forza l'invio e invia il file
+    flush();
+    readfile($file_path);
     exit;
 }
 
-add_action('wp_ajax_download_summary', 'handle_summary_download');
-add_action('wp_ajax_nopriv_download_summary', 'handle_summary_download');
+add_action('wp_ajax_download_ai', 'handle_ai_download');
+add_action('wp_ajax_nopriv_download_ai', 'handle_ai_download');
 
 /**
  * Gestisce la richiesta AJAX per ottenere l'URL di download sicuro
