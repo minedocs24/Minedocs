@@ -232,7 +232,7 @@ add_action('wp_footer', function() {
         echo '<script>modal_email_verificata();</script>';
         echo '<script>window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
-            \'event\': \'user_registration_success\',
+            \'event\': \'signup\',
             \'user_email\': \'' . esc_js($email) . '\' // opzionale
             });
             </script>';
