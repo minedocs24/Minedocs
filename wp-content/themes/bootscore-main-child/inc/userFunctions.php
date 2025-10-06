@@ -235,10 +235,6 @@ add_action('wp_footer', function() {
             \'event\': \'user_registration_success\',
             \'user_email\': \'' . esc_js($email) . '\' // opzionale
             });
-            console.log("Evento user_email_verified inviato");
-            console.log("Email: " + \'' . esc_js($email) . '\');
-            console.log("User ID: " + \'' . esc_js($user->ID) . '\');
-            console.log("DataLayer: " + window.dataLayer);
             </script>';
     }
 }, 100);
