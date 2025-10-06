@@ -227,7 +227,19 @@ add_action('init', function() {
 
 add_action('wp_footer', function() {
     if (isset($_GET['msg']) && $_GET['msg'] == 'email-verified') {
+        $user = get_userdata(get_current_user_id());
+        $email = $user->user_email;
         echo '<script>modal_email_verificata();</script>';
+        echo '<script>window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push({
+            \'event\': \'user_registration_success\',
+            \'user_email\': \'' . esc_js($email) . '\' // opzionale
+            });
+            console.log("Evento user_email_verified inviato");
+            console.log("Email: " + \'' . esc_js($email) . '\');
+            console.log("User ID: " + \'' . esc_js($user->ID) . '\');
+            console.log("DataLayer: " + window.dataLayer);
+            </script>';
     }
 }, 100);
 
