@@ -20,6 +20,7 @@ jQuery(document).ready(function($) {
     const analysisSection = $('.studia-ai-document-analysis');
     const configSection = $('.studia-ai-summary-config');
     const generateSection = $('.studia-ai-generate-summary');
+    const quizConfigRow = $('.studia-ai-quiz-config-row');
 
     // Flag per prevenire chiamate multiple
     let isUploading = false;
@@ -32,7 +33,7 @@ jQuery(document).ready(function($) {
     let totalJobs = 0;
     
     // Lista delle azioni disponibili
-    const availableActions = ['riassunto', 'summary', 'mappa', 'mindmap'];
+    const availableActions = ['riassunto', 'summary', 'mappa', 'mindmap', 'quiz'];
     
     // Gestione per documenti già presenti in piattaforma
     if (typeof env_studia_con_ai !== 'undefined' && env_studia_con_ai.has_document) {
@@ -45,11 +46,19 @@ jQuery(document).ready(function($) {
             return;
         }
         
-        // Se c'è un documento selezionato, mostra direttamente le sezioni; se i parametri sono nascosti, non mostrare la config
-        if (!env_studia_con_ai.hide_params) {
-            configSection.show();
-        } else {
+        // Se c'è un documento selezionato, mostra le sezioni appropriate in base all'azione
+        if (env_studia_con_ai.action === 'quiz') {
+            // mostriamo solo la sezione quiz
             configSection.hide();
+            quizConfigRow.show();
+        } else {
+            // comportamento precedente per riassunti/altre azioni
+            quizConfigRow.hide();
+            if (!env_studia_con_ai.hide_params) {
+                configSection.show();
+            } else {
+                configSection.hide();
+            }
         }
         generateSection.show();
         
@@ -126,9 +135,24 @@ jQuery(document).ready(function($) {
         };
         
         const sectionLabel = sectionLabels[currentAction] || 'il riassunto';
-        if (!env_studia_con_ai.hide_params) {
+
+        // Mostra/nascondi sezioni di configurazione in base all'azione
+        if (currentAction === 'quiz') {
+            // mostra la configurazione quiz e nasconde la configurazione summary
+            configSection.hide();
+            quizConfigRow.show();
             $('.studia-ai-summary-config .card-title').html(`<i class="fas fa-cog text-primary me-2"></i> Configura ${sectionLabel} <span class="badge bg-success ms-2">Configurazione attiva</span>`);
+        } else {
+            // per ora i parametri dei riassunti restano nascosti a meno che hide_params sia false
+            quizConfigRow.hide();
+            if (!env_studia_con_ai.hide_params) {
+                configSection.show();
+                $('.studia-ai-summary-config .card-title').html(`<i class="fas fa-cog text-primary me-2"></i> Configura ${sectionLabel} <span class="badge bg-success ms-2">Configurazione attiva</span>`);
+            } else {
+                configSection.hide();
+            }
         }
+
         $('.studia-ai-generate-summary .card-title').text(`Genera ${sectionLabel}`);
     }
 
@@ -581,6 +605,11 @@ jQuery(document).ready(function($) {
             ajaxAction = 'generate_map';
             // supporta diversi nomi di nonce eventualmente presenti
             ajaxNonce = env_studia_con_ai.nonce_generate_mappe || env_studia_con_ai.nonce_generate_mindmap || env_studia_con_ai.nonce_generate_summary;
+        } else if (selectedAction === 'quiz') {
+            // Quando l'azione selezionata è 'quiz' bisogna chiamare l'endpoint dedicato
+            ajaxAction = 'generate_quiz';
+            // usa il nonce specifico per i quiz se presente, altrimenti fallback a quello generico
+            ajaxNonce = env_studia_con_ai.nonce_generate_quiz || env_studia_con_ai.nonce_generate_summary;
         }
 
         formData.append('action', ajaxAction);
@@ -601,6 +630,34 @@ jQuery(document).ready(function($) {
         if (env_studia_con_ai.has_document && env_studia_con_ai.document_id) {
             formData.append('document_id', env_studia_con_ai.document_id);
             formData.append('request_type', env_studia_con_ai.action);
+        }
+
+        // Se l'azione è quiz, allega i parametri specifici (numero domande e difficoltà)
+        if (selectedAction === 'quiz') {
+            // supporta sia gli id generati via JS sia quelli renderizzati in PHP
+            const numEl = $('#quiz-num-questions, #quiz-num-questions-php');
+            const diffEl = $('#quiz-difficulty, #quiz-difficulty-php');
+
+            // Valore di default
+            let numQuestions = 10;
+            if (numEl.length) {
+                const parsed = parseInt(numEl.val(), 10);
+                if (!isNaN(parsed)) {
+                    numQuestions = Math.max(1, Math.min(20, parsed));
+                }
+            }
+
+            // Difficoltà: ci aspettiamo i valori 'facile', 'media', 'difficile' (default 'media')
+            let difficulty = 'medium';
+            if (diffEl.length) {
+                const val = diffEl.val();
+                if (val) {
+                    difficulty = val;
+                }
+            }
+
+            formData.append('num_questions', numQuestions);
+            formData.append('difficulty', difficulty);
         }
 
         // Chiamata AJAX con jQuery

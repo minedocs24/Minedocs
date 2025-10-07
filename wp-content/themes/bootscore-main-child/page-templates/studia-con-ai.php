@@ -29,7 +29,7 @@ $document_id = isset($_GET['document_id']) ? sanitize_text_field($_GET['document
 $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'riassunto';
 
 // Lista delle azioni disponibili
-$available_actions = array('riassunto', 'summary', 'mappa');
+$available_actions = array('riassunto', 'summary', 'mappa', 'quiz');
 
 // Se l'azione non è disponibile, reindirizza a riassunto
 if (!in_array($action, $available_actions)) {
@@ -57,6 +57,7 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
     'nonce'    => wp_create_nonce('studia_con_ai_nonce'),
     'nonce_generate_summary' => wp_create_nonce('nonce_generate_summary'),
     'nonce_generate_mappe' => wp_create_nonce('nonce_generate_mappe'),
+    'nonce_generate_quiz' => wp_create_nonce('nonce_generate_quiz'),
     'nonce_get_dynamic_price' => wp_create_nonce('nonce_get_dynamic_price'),
     'nonce_summary_jobs' => wp_create_nonce('nonce_summary_jobs'),
     'nonce_document_details' => wp_create_nonce('nonce_document_details'),
@@ -109,11 +110,11 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
                     <div class="studia-ai-feature-text">Evidenzia nel documento <span class="badge bg-secondary">Coming Soon</span></div>
                 </div>
 
-                <div class="studia-ai-feature-item <?php echo ($action === 'quiz') ? 'active' : ''; ?> coming-soon" data-action="quiz">
+                <div class="studia-ai-feature-item <?php echo ($action === 'quiz') ? 'active' : ''; ?>" data-action="quiz">
                     <div class="studia-ai-feature-icon">
                         <i class="fas fa-question-circle"></i>
                     </div>
-                    <div class="studia-ai-feature-text">Crea un quiz <span class="badge bg-secondary">Coming Soon</span></div>
+                    <div class="studia-ai-feature-text">Crea un quiz</div>
                 </div>
 
                 <div class="studia-ai-feature-item <?php echo ($action === 'interroga') ? 'active' : ''; ?> coming-soon" data-action="interroga">
@@ -334,6 +335,41 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
                                 <i class="fas fa-info-circle me-1"></i>
                                 Le opzioni selezionate verranno utilizzate automaticamente per la generazione del riassunto
                             </small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sezione di configurazione per i Quiz (nascosta inizialmente, mostrata via JS quando action=quiz) -->
+    <div class="row studia-ai-quiz-config-row mt-4" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-cog text-primary me-2"></i>
+                        Configura il quiz
+                        <span class="badge bg-success ms-2">Configurazione quiz</span>
+                    </h5>
+                    <form id="studia-ai-quiz-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="quiz-num-questions-php" class="form-label">Numero domande</label>
+                                <input type="number" id="quiz-num-questions-php" name="num_questions" class="form-control" min="1" max="20" value="10">
+                                <small class="text-muted">Min: 1, Max: 20</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="quiz-difficulty-php" class="form-label">Difficoltà</label>
+                                <select id="quiz-difficulty-php" name="difficulty" class="form-select">
+                                    <option value="easy">Facile</option>
+                                    <option value="medium" selected>Media</option>
+                                    <option value="hard">Difficile</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-end mt-3">
+                            <small class="text-muted">I parametri selezionati verranno inviati alla generazione del quiz.</small>
                         </div>
                     </form>
                 </div>
