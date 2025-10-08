@@ -207,6 +207,66 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
     </div>
     <?php endif; ?>
 
+        <!-- Sezione Quiz Player (nascosta inizialmente, mostrata via JS quando quiz pronto) -->
+        <div class="row mt-4" id="quizPlayerRow" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-sm" id="quizPlayer">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 d-flex align-items-center">
+                        <i class="fas fa-question-circle text-primary me-2"></i>
+                        Quiz
+                        <span class="badge bg-info ms-3" id="quizDifficultyBadge">-</span>
+                    </h5>
+                    <div class="w-50">
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar" id="quizProgressBar" role="progressbar" style="width: 0%;"></div>
+                        </div>
+                        <div class="text-end mt-1 small text-muted" id="quizProgressText">Domanda 0 di 0</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Schermata iniziale -->
+                    <div id="quizStart" class="text-center" style="display: none;">
+                        <div class="mb-3">
+                            <i class="fas fa-play-circle fa-3x text-primary"></i>
+                        </div>
+                        <p class="lead mb-3">Sei pronto a iniziare il quiz?</p>
+                        <button class="btn btn-primary btn-lg" id="quizStartBtn">
+                            <i class="fas fa-play me-2"></i>Inizia Quiz
+                        </button>
+                    </div>
+
+                    <!-- Schermata di gioco -->
+                    <div id="quizPlay" style="display: none;">
+                        <h5 id="quizQuestionText" class="mb-4"></h5>
+                        <div id="quizOptions" class="row g-3"></div>
+                        <div class="d-flex justify-content-end mt-4">
+                            <button class="btn btn-secondary" id="quizNextBtn" disabled>
+                                Prossima domanda <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Schermata finale -->
+                    <div id="quizResult" class="text-center" style="display: none;">
+                        <div class="mb-3">
+                            <i class="fas fa-trophy fa-3x text-warning"></i>
+                        </div>
+                        <h4 class="mb-2">Quiz completato!</h4>
+                        <p class="lead">
+                            Punteggio: <strong id="quizScore">0/0</strong>
+                        </p>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary" id="quizRetryBtn">
+                                <i class="fas fa-redo me-2"></i>Ripeti Quiz
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Sezione di configurazione del riassunto (nascosta inizialmente) -->
     <div class="row studia-ai-summary-config mt-4" style="display: none;">
         <div class="col-12">
@@ -400,6 +460,11 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
                 </div>
             </div>
         </div>
+    </div>
+    <div class="mt-3 text-center">
+        <button id="studia-ai-new-generation" class="btn btn-primary btn-lg" style="display:none;">
+            <i class="fas fa-plus me-2"></i> Avvia Nuova Generazione
+        </button>
     </div>
 
     <!-- Sezione "Le mie generazioni" -->

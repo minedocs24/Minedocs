@@ -21,6 +21,168 @@ jQuery(document).ready(function($) {
     const configSection = $('.studia-ai-summary-config');
     const generateSection = $('.studia-ai-generate-summary');
     const quizConfigRow = $('.studia-ai-quiz-config-row');
+    const quizPlayerRow = $('#quizPlayerRow');
+    const newGenerationButton = $('#studia-ai-new-generation');
+    let currentQuiz = null; // { questions: [...], difficulty: string, idx: 0, score: 0, total: number, answered: boolean, correctAnswer: number }
+
+    function hideQuizPlayer() {
+        if (quizPlayerRow && quizPlayerRow.length) {
+            quizPlayerRow.hide();
+            // reset semplice degli elementi interni
+            $('#quizStart').hide();
+            $('#quizPlay').hide();
+            $('#quizResult').hide();
+            $('#quizQuestionText').text('');
+            $('#quizOptions').empty();
+            $('#quizProgressBar').css('width', '0%');
+            $('#quizProgressText').text('Domanda 0 di 0');
+            $('#quizDifficultyBadge').text('-').removeClass('bg-success bg-warning bg-danger');
+        }
+        currentQuiz = null;
+    }
+
+    function difficultyToBadge(difficulty) {
+        const d = (difficulty || '').toString().toLowerCase();
+        if (d === 'easy' || d === 'facile') return { text: 'Facile', cls: 'bg-success' };
+        if (d === 'hard' || d === 'difficile') return { text: 'Difficile', cls: 'bg-danger' };
+        return { text: 'Media', cls: 'bg-warning' };
+    }
+
+    function updateQuizProgress() {
+        if (!currentQuiz) return;
+        const current = currentQuiz.idx + 1;
+        const total = currentQuiz.total;
+        const percent = Math.max(0, Math.min(100, Math.round((current / total) * 100)));
+        $('#quizProgressBar').css('width', percent + '%');
+        $('#quizProgressText').text('Domanda ' + current + ' di ' + total);
+    }
+
+    function renderQuizQuestion() {
+        if (!currentQuiz) return;
+        const q = currentQuiz.questions[currentQuiz.idx];
+        currentQuiz.answered = false;
+        currentQuiz.correctAnswer = parseInt(q.correct_answer, 10);
+        $('#quizQuestionText').text(q.question || '');
+        $('#quizOptions').empty();
+        $('#quizNextBtn').prop('disabled', true);
+
+        // Costruisci le 4 opzioni in griglia
+        Object.keys(q.options || {}).sort().forEach(function(key) {
+            const text = q.options[key];
+            const col = $('<div class="col-12 col-md-6"></div>');
+            const btn = $('<button type="button" class="btn btn-outline-secondary w-100 text-start p-3"></button>');
+            btn.attr('data-option-key', key);
+            btn.append('<span class="fw-bold me-2">' + key + ')</span>' + text);
+
+            btn.on('click', function() {
+                if (!currentQuiz || currentQuiz.answered) return;
+                const chosen = parseInt($(this).attr('data-option-key'), 10);
+                const isCorrect = chosen === currentQuiz.correctAnswer;
+                currentQuiz.answered = true;
+                if (isCorrect) {
+                    currentQuiz.score += 1;
+                }
+
+                // Disabilita tutte le opzioni e applica gli stili
+                $('#quizOptions button').prop('disabled', true);
+
+                // Evidenzia risposta selezionata
+                if (isCorrect) {
+                    $(this).removeClass('btn-outline-secondary').addClass('btn-success');
+                    // mini animazione di "pulse"
+                    $(this).css({ transform: 'scale(1.02)' });
+                    setTimeout(() => { $(this).css({ transform: '' }); }, 200);
+                } else {
+                    $(this).removeClass('btn-outline-secondary').addClass('btn-danger');
+                    // evidenzia anche la corretta
+                    $('#quizOptions button[data-option-key="' + currentQuiz.correctAnswer + '"]').removeClass('btn-outline-secondary').addClass('btn-success');
+                    // mini animazione shake via translate
+                    $(this).css({ transform: 'translateX(-4px)' });
+                    setTimeout(() => { $(this).css({ transform: 'translateX(4px)' }); }, 60);
+                    setTimeout(() => { $(this).css({ transform: '' }); }, 120);
+                }
+
+                // Abilita "Prossima domanda"
+                $('#quizNextBtn').prop('disabled', false);
+            });
+
+            col.append(btn);
+            $('#quizOptions').append(col);
+        });
+
+        updateQuizProgress();
+    }
+
+    function showQuizStart() {
+        $('#quizStart').show();
+        $('#quizPlay').hide();
+        $('#quizResult').hide();
+        $('#quizNextBtn').prop('disabled', true);
+    }
+
+    function showQuizPlay() {
+        $('#quizStart').hide();
+        $('#quizPlay').show();
+        $('#quizResult').hide();
+    }
+
+    function showQuizResult() {
+        $('#quizStart').hide();
+        $('#quizPlay').hide();
+        $('#quizResult').show();
+        if (currentQuiz) {
+            $('#quizScore').text(currentQuiz.score + '/' + currentQuiz.total);
+        }
+    }
+
+    function initQuizPlayer(quizArray, difficulty) {
+        if (!Array.isArray(quizArray) || quizArray.length === 0) {
+            showCustomAlert('Errore', 'Nessuna domanda disponibile per il quiz.', 'bg-danger btn-danger');
+            return;
+        }
+        const diff = difficultyToBadge(difficulty);
+        $('#quizDifficultyBadge').text(diff.text).removeClass('bg-success bg-warning bg-danger').addClass(diff.cls);
+
+        currentQuiz = {
+            questions: quizArray,
+            difficulty: diff.text,
+            idx: 0,
+            score: 0,
+            total: quizArray.length,
+            answered: false,
+            correctAnswer: null
+        };
+
+        $('#quizProgressText').text('Domanda 0 di ' + currentQuiz.total);
+
+        quizPlayerRow.show();
+        showQuizStart();
+
+        // Bind pulsanti (unico listener)
+        $('#quizStartBtn').off('click').on('click', function() {
+            showQuizPlay();
+            renderQuizQuestion();
+        });
+
+        $('#quizNextBtn').off('click').on('click', function() {
+            if (!currentQuiz) return;
+            if (!currentQuiz.answered) return; // safety
+            if (currentQuiz.idx < currentQuiz.total - 1) {
+                currentQuiz.idx += 1;
+                renderQuizQuestion();
+            } else {
+                showQuizResult();
+            }
+        });
+
+        $('#quizRetryBtn').off('click').on('click', function() {
+            if (!currentQuiz) return;
+            currentQuiz.idx = 0;
+            currentQuiz.score = 0;
+            showQuizStart();
+            updateQuizProgress();
+        });
+    }
 
     // Flag per prevenire chiamate multiple
     let isUploading = false;
@@ -51,6 +213,8 @@ jQuery(document).ready(function($) {
             // mostriamo solo la sezione quiz
             configSection.hide();
             quizConfigRow.show();
+            // Reset e nascondi il player finché non pronto
+            hideQuizPlayer();
         } else {
             // comportamento precedente per riassunti/altre azioni
             quizConfigRow.hide();
@@ -59,6 +223,7 @@ jQuery(document).ready(function($) {
             } else {
                 configSection.hide();
             }
+            hideQuizPlayer();
         }
         generateSection.show();
         
@@ -96,6 +261,11 @@ jQuery(document).ready(function($) {
         
         // Aggiorna i titoli e le etichette
         updateActionLabels();
+
+        // Se compare il quiz player, nascondilo e ripristina la sezione di upload
+        hideQuizPlayer();
+        // mostra la sezione upload per iniziare nuova generazione
+        resetStudiaAiUpload();
         
         // Se c'è un documento selezionato, aggiorna l'URL senza ricaricare la pagina
         if (env_studia_con_ai && env_studia_con_ai.has_document && env_studia_con_ai.document_id) {
@@ -141,6 +311,7 @@ jQuery(document).ready(function($) {
             // mostra la configurazione quiz e nasconde la configurazione summary
             configSection.hide();
             quizConfigRow.show();
+            hideQuizPlayer();
             $('.studia-ai-summary-config .card-title').html(`<i class="fas fa-cog text-primary me-2"></i> Configura ${sectionLabel} <span class="badge bg-success ms-2">Configurazione attiva</span>`);
         } else {
             // per ora i parametri dei riassunti restano nascosti a meno che hide_params sia false
@@ -151,6 +322,7 @@ jQuery(document).ready(function($) {
             } else {
                 configSection.hide();
             }
+            hideQuizPlayer();
         }
 
         $('.studia-ai-generate-summary .card-title').text(`Genera ${sectionLabel}`);
@@ -575,6 +747,12 @@ jQuery(document).ready(function($) {
         fetchDynamicPriceAndUpdateButton();
     }
 
+    // Bind per il pulsante Nuova generazione
+    $('#studia-ai-new-generation').off('click').on('click', function() {
+        $(this).hide();
+        resetStudiaAiUpload();
+    });
+
     // Rimuoviamo la gestione del submit del form
     // La sezione di configurazione rimane sempre visibile
     // e le opzioni vengono utilizzate automaticamente durante la generazione
@@ -639,11 +817,17 @@ jQuery(document).ready(function($) {
             const diffEl = $('#quiz-difficulty, #quiz-difficulty-php');
 
             // Valore di default
-            let numQuestions = 10;
+            let numQuestions = 100;
             if (numEl.length) {
                 const parsed = parseInt(numEl.val(), 10);
                 if (!isNaN(parsed)) {
-                    numQuestions = Math.max(1, Math.min(20, parsed));
+                    if (parsed < 1 || parsed > 20) {
+                        showCustomAlert("Errore", "Il numero di domande deve essere compreso tra 1 e 20.", 'bg-danger btn-danger');
+                        button.prop('disabled', false);
+                        fetchDynamicPriceAndUpdateButton();
+                        return;
+                    }
+                    numQuestions = parsed;
                 }
             }
 
@@ -653,6 +837,12 @@ jQuery(document).ready(function($) {
                 const val = diffEl.val();
                 if (val) {
                     difficulty = val;
+                    if (difficulty !== 'easy' && difficulty !== 'medium' && difficulty !== 'hard') {
+                        showCustomAlert("Errore", "La difficoltà deve essere facile, media o difficile.", 'bg-danger btn-danger');
+                        button.prop('disabled', false);
+                        fetchDynamicPriceAndUpdateButton();
+                        return;
+                    }
                 }
             }
 
@@ -669,13 +859,31 @@ jQuery(document).ready(function($) {
             contentType: false,
             timeout: 30000, // 30 secondi di timeout
             beforeSend: function() {
-                console.log('Avvio generazione riassunto asincrono');
+
             },
             success: function(response) {
                 if (response.success) {
                     // Mostra messaggio di successo
                     showCustomAlert("Generazione avviata!", response.data.message, 'bg-success btn-success');
-                    
+                    // Se si tratta di quiz, mostra direttamente il player con i dati ricevuti
+                    if (selectedAction === 'quiz' && response.data && response.data.quiz_data && Array.isArray(response.data.quiz_data.quiz)) {
+                        console.log('Entro nel if');
+                        try {
+                            const quizArray = response.data.quiz_data.quiz;
+                            const difficulty = response.data.difficulty || 'medium';
+                            // Nascondi sezioni non necessarie e mostra player
+                            $('.studia-ai-generate-summary').hide();
+                            quizConfigRow.hide();
+                            // Nascondi la sezione con i dettagli del documento caricato
+                            $('.studia-ai-document-analysis').hide();
+                            initQuizPlayer(quizArray, difficulty);
+                            newGenerationButton.show();
+                            return; // evita resto del flusso generazioni
+                        } catch (e) {
+                            console.error('Errore inizializzazione quiz:', e);
+                        }
+                    }
+
                     // Resetta il pulsante e ricalcola prezzo per mantenere lo stato coerente
                     button.prop('disabled', false);
                     fetchDynamicPriceAndUpdateButton();
@@ -689,6 +897,8 @@ jQuery(document).ready(function($) {
                     // Mostra la sezione delle generazioni
                     $('.studia-ai-generate-summary').hide();
                     $('.card:has(#jobs-container)').show();
+                    // Mostra il pulsante per avviare una nuova generazione
+                    newGenerationButton.show();
                     
                     // Se è un duplicato, scorri automaticamente alla sezione generazioni
                     if (isDuplicate) {
@@ -917,7 +1127,7 @@ jQuery(document).ready(function($) {
 
     function getStatusBadge(status) {
         const badges = {
-            'pending': '<span class="badge bg-warning">In attesa</span>',
+            'pending': '<span class="badge bg-warning">In elaborazione</span>',
             'processing': '<span class="badge bg-info">In elaborazione</span>',
             'completed': '<span class="badge bg-success">Completato</span>',
             'error': '<span class="badge bg-danger">Errore</span>'
@@ -929,18 +1139,18 @@ jQuery(document).ready(function($) {
         let buttons = `<button class="btn btn-sm btn-outline-primary" onclick="showJobDetails(${job.job_id})">
             <i class="fas fa-eye"></i> Dettagli
         </button>`;
-        
+
         if (job.status === 'completed') {
-            buttons += ` <button class="btn btn-sm btn-success" onclick="downloadSummary(${job.job_id})">
-                <i class="fas fa-download"></i> Scarica
-            </button>`;
+            if (job.request_type === 'quiz') {
+                buttons += ` <button class="btn btn-sm btn-success" onclick="downloadQuiz(${job.job_id})">
+                    <i class="fas fa-play"></i> Avvia Quiz
+                </button>`;
+            } else {
+                buttons += ` <button class="btn btn-sm btn-success" onclick="downloadSummary(${job.job_id})">
+                    <i class="fas fa-download"></i> Scarica
+                </button>`;
+            }
         }
-        
-        // if (job.status === 'error') {
-        //     buttons += ` <button class="btn btn-sm btn-warning" onclick="retryJob(${job.job_id})">
-        //         <i class="fas fa-redo"></i> Riprova
-        //     </button>`;
-        // }
                 
         return buttons;
     }
@@ -1062,6 +1272,53 @@ jQuery(document).ready(function($) {
         };
     } // Chiusura del blocco if (!window.downloadSummary)
 
+    // Funzione globale per avviare un quiz dal job (recupera il JSON dal backend e lo mostra)
+    if (!window.downloadQuiz) {
+        window.downloadQuiz = function(jobId) {
+            const button = $(`button[onclick="downloadQuiz(${jobId})"]`);
+            const originalText = button.html();
+
+            button.prop('disabled', true);
+            button.html('<i class="fas fa-spinner fa-spin"></i> Preparazione quiz...');
+
+            $.ajax({
+                url: env_studia_con_ai.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'get_quiz_download_url',
+                    job_id: jobId,
+                    nonce: env_studia_con_ai.nonce_summary_download
+                },
+                success: function(response) {
+                    if (response.success && response.data) {
+                        // Se il backend ha restituito direttamente il JSON del quiz
+                        if (response.data.quiz_json) {
+                            const json = response.data.quiz_json;
+                            const quizArray = json.quiz_data;
+                            const difficulty = response.data.difficulty || (json.difficulty) || 'medium';
+                            $('.studia-ai-document-analysis').hide();
+                            uploadSection.hide();
+                            quizConfigRow.hide();
+                            initQuizPlayer(quizArray, difficulty);
+                            return;
+                        } else {
+                            showCustomAlert('Errore', 'Impossibile ottenere il quiz.', 'bg-warning btn-warning');
+                        }
+                    } else {
+                        showCustomAlert('Errore nel recupero quiz', response.data && response.data.message ? response.data.message : 'Impossibile ottenere il quiz.', 'bg-warning btn-warning');
+                    }
+                },
+                error: function() {
+                    showCustomAlert('Errore di connessione', 'Si è verificato un errore durante la richiesta.', 'bg-danger btn-danger');
+                },
+                complete: function() {
+                    button.prop('disabled', false);
+                    button.html(originalText);
+                }
+            });
+        };
+    }
+
     // Funzione globale per il retry dei job (placeholder per ora)
     if (!window.retryJob) {
         window.retryJob = function(jobId) {
@@ -1162,6 +1419,7 @@ jQuery(document).ready(function($) {
         analysisSection.hide();
         configSection.hide();
         generateSection.hide();
+        newGenerationButton.hide();
         fileInput.val('');
         progressBar.css('width', '0%');
         progressBar.html('');
