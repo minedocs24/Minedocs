@@ -1350,6 +1350,13 @@ jQuery(document).ready(function($) {
                             $('.studia-ai-document-analysis').hide();
                             uploadSection.hide();
                             quizConfigRow.hide();
+                            // Se c'è un documento caricato, nascondilo
+                            if (env_studia_con_ai.has_document) {
+                                documentDetailsRow.hide();
+                                generateSection.hide();
+                                // Chiudi il modal con i dettagli della generazione
+                                $('#jobDetailsModal').modal('hide');
+                            }
                             initQuizPlayer(quizArray, difficulty);
                             newGenerationButton.show();
                             // Mostra la feature dei quiz selezionata e rimuove la classe active da tutte le altre
@@ -1396,7 +1403,23 @@ jQuery(document).ready(function($) {
                         <tr><td><strong>Data richiesta:</strong></td><td>${date}</td></tr>
                         <tr><td><strong>Costo (Punti Pro):</strong></td><td>${job.points_cost ? job.points_cost + (job.points_cost === 1 ? ' punto' : ' punti') : '-'}</td></tr>
                     </table>
+                </div>`;
+        // Se è un quiz, mostra i dettagli nella colonna accanto (se presente), altrimenti sotto
+        if (job.request_type === 'quiz') {
+            const numQ = config.question_number || config.num_questions || '-';
+            const diffRaw = (config.difficulty || '-').toString().toLowerCase();
+            const diffIt = diffRaw === 'easy' || diffRaw === 'facile' ? 'Facile' : (diffRaw === 'medium' || diffRaw === 'media' ? 'Media' : (diffRaw === 'hard' || diffRaw === 'difficile' ? 'Difficile' : (config.difficulty || '-')));
+            html += `
+                <div class="col-md-6">
+                    <h6>Dettagli Quiz</h6>
+                    <table class="table table-sm">
+                        <tr><td><strong>Numero domande:</strong></td><td>${numQ}</td></tr>
+                        <tr><td><strong>Difficoltà:</strong></td><td>${diffIt}</td></tr>
+                    </table>
                 </div>
+            `;
+        }
+        html += `
                 ${!env_studia_con_ai.hide_params ? `
                 <div class="col-md-6">
                     <h6>Parametri Configurazione</h6>
@@ -1425,11 +1448,10 @@ jQuery(document).ready(function($) {
                 <div class="alert alert-success mt-3">
                     <h6>Risultato disponibile</h6>
                     <p><strong>Costo utilizzato:</strong> ${puntiText} Pro</p>
-                    <button class="btn btn-success" onclick="downloadSummary(${job.job_id})">
-                        <i class="fas fa-download"></i> Scarica risultato
+                    <button class="btn btn-success" onclick="${job.request_type === 'quiz' ? `downloadQuiz(${job.job_id})` : `downloadSummary(${job.job_id})`}">
+                        <i class="fas fa-${job.request_type === 'quiz' ? 'play' : 'download'}"></i> ${job.request_type === 'quiz' ? 'Avvia quiz' : 'Scarica risultato'}
                     </button>
-                </div>
-            `;
+                </div>`;
         }
         
         $('#jobDetailsContent').html(html);
