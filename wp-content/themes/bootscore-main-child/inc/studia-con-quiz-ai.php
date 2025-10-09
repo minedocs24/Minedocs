@@ -30,13 +30,12 @@ function handle_generate_quiz() {
     check_ajax_referer('nonce_generate_quiz', 'nonce');
 
     //3.Recupera i parametri del quiz dalla richiesta POST
-    if(!isset($_POST['file_id']) || !isset($_POST['num_questions']) || !isset($_POST['difficulty'])){
+    if(!isset($_POST['num_questions']) || !isset($_POST['difficulty'])){
         wp_send_json_error(['message' => 'Parametri obbligatori mancanti.']);
         return;
     }
 
-    //4.Recupera il file/numero di domande/difficoltà
-    $file_id = intval($_POST['file_id']);
+    //4.Recupera il numero di domande/difficoltà
     // Controlla che il numero di domande sia un intero, e sia compreso tra 1 e 20
     $num_questions = intval($_POST['num_questions']);
     if($num_questions < 1 || $num_questions > 20){
@@ -51,15 +50,52 @@ function handle_generate_quiz() {
     }
 
     //5.Conversione: file_id -> file_path
-    $file_path = get_attached_file($file_id);
-    
-    // Debug: log del file_id e file_path
-    error_log("Quiz Debug - file_id: $file_id, file_path: $file_path");
-    
-    if(!$file_path || !file_exists($file_path)){
-        error_log("Quiz Error - File non trovato. file_id: $file_id, file_path: $file_path");
-        wp_send_json_error(['message' => "File non trovato. ID: $file_id, Path: $file_path"]);
-        return;
+    // Gestione per documenti già presenti in piattaforma
+    if (isset($_POST['document_id']) && !empty($_POST['document_id'])) {
+        // Documento già presente in piattaforma
+        $document_id = sanitize_text_field($_POST['document_id']);
+        $product_id = get_product_id_by_hash($document_id);
+        
+        if (!$product_id) {
+            wp_send_json_error(array('message' => 'Documento non trovato'));
+            return;
+        }
+        
+        // Recupera il file_id dal prodotto
+        $file_anteprima_id = get_post_meta($product_id, '_file_anteprima', true);
+        if (!$file_anteprima_id) {
+            wp_send_json_error(array('message' => 'File del documento non trovato'));
+            return;
+        }
+        
+        $file_id = intval($file_anteprima_id);
+        $file_path = get_attached_file($file_id);
+        
+        if (!$file_path || !file_exists($file_path)) {
+            wp_send_json_error(array('message' => 'File del documento non trovato'));
+            return;
+        }
+        
+        // Aggiungi il tipo di richiesta se specificato
+        if (isset($_POST['request_type'])) {
+            $config['request_type'] = sanitize_text_field($_POST['request_type']);
+        }
+        error_log('Request type: ' . $config['request_type']);
+        
+    } else {
+        // Documento caricato tramite upload
+        if (!isset($_POST['file_id'])) {
+            wp_send_json_error(array('message' => 'File del documento non trovato'));
+            return;
+        }
+
+        $file_id = intval($_POST['file_id']);
+        $file_path = get_attached_file($file_id);
+
+        if (!$file_path || !file_exists($file_path)) {
+            wp_send_json_error(array('message' => 'File del documento non trovato'));
+            return;
+        }
     }
 
     //6.Calcola costo in punti
@@ -68,7 +104,6 @@ function handle_generate_quiz() {
         wp_send_json_error(array('message' => 'Impossibile calcolare il costo in punti: ' . $points_cost->get_error_message()));
         return;
     }
-
 
     try {
         //7.Crea prima il job nel database per ottenere un job_id univoco
@@ -85,19 +120,7 @@ function handle_generate_quiz() {
             return;
         }
 
-        //8.Generazione del quiz sincrono con job_id
-        $quiz_result = send_quiz_to_flask($file_id, $num_questions, $difficulty, $job_id);
-
-        if (is_wp_error($quiz_result)) {
-            error_log('Errore nella generazione del quiz: ' . $quiz_result->get_error_message());
-            // Aggiorna il job come fallito
-            studia_ai_update_job_status($job_id, 'failed', array('error' => $quiz_result->get_error_message()));
-            wp_send_json_error(array('message' => 'Errore nella generazione del quiz: ' . $quiz_result->get_error_message()));
-            return;
-        }
-
-        $result = studia_ai_update_job_status($job_id, 'completed', array('result_file' => $quiz_result['json_file_path']));
-        //9. GESTIONE PUNTI (stesso pattern di studia-schemi-ai.php)
+        //6.1.GESTIONE PUNTI
         try {
             $sistema_pro = function_exists('get_sistema_punti') ? get_sistema_punti('pro') : null;
             if (!$sistema_pro){
@@ -144,9 +167,25 @@ function handle_generate_quiz() {
             // Rimuove i punti dal wallet dell'utente SOLO se tutto è andato a buon fine
             $sistema_pro->rimuovi_punti(get_current_user_id(), intval($points_cost), $data_log);
         } catch (Exception $e) {
+            if (function_exists('studia_ai_delete_job')) {
+                studia_ai_delete_job($job_id, get_current_user_id());
+            }
             wp_send_json_error(array('message' => $e->getMessage()));
             return;
         }
+
+        //8.Generazione del quiz 
+        $quiz_result = send_quiz_to_flask($file_id, $num_questions, $difficulty, $job_id);
+
+        if (is_wp_error($quiz_result)) {
+            error_log('Errore nella generazione del quiz: ' . $quiz_result->get_error_message());
+            // Aggiorna il job come fallito
+            studia_ai_update_job_status($job_id, 'failed', array('error' => $quiz_result->get_error_message()));
+            wp_send_json_error(array('message' => 'Errore nella generazione del quiz: ' . $quiz_result->get_error_message()));
+            return;
+        }
+
+        $result = studia_ai_update_job_status($job_id, 'completed', array('result_file' => $quiz_result['json_file_path']));
 
         //10. Filtra la risposta di Flask per rimuovere percorsi sensibili
         $filtered_quiz_data = $quiz_result;

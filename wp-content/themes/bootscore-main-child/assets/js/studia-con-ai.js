@@ -23,6 +23,7 @@ jQuery(document).ready(function($) {
     const quizConfigRow = $('.studia-ai-quiz-config-row');
     const quizPlayerRow = $('#quizPlayerRow');
     const newGenerationButton = $('#studia-ai-new-generation');
+    const documentDetailsRow = $('#document-details-row');
     let currentQuiz = null; // { questions: [...], difficulty: string, idx: 0, score: 0, total: number, answered: boolean, correctAnswer: number }
 
     function hideQuizPlayer() {
@@ -135,6 +136,25 @@ jQuery(document).ready(function($) {
         }
     }
 
+// Se la pagina è stata aperta con ?open_quiz_job=ID&action=quiz, avvia il quiz automaticamente
+(function() {
+    try {
+        const params = new URLSearchParams(window.location.search);
+        const jobId = params.get('open_quiz_job');
+        const actionParam = params.get('action');
+        if (jobId && actionParam === 'quiz') {
+            // aspetta che la funzione sia definita
+            setTimeout(() => {
+                if (typeof downloadQuiz === 'function') {
+                    downloadQuiz(jobId);
+                }
+            }, 300);
+        }
+    } catch (e) {
+        console.error('Auto-open quiz failed', e);
+    }
+})();
+
     function initQuizPlayer(quizArray, difficulty) {
         if (!Array.isArray(quizArray) || quizArray.length === 0) {
             showCustomAlert('Errore', 'Nessuna domanda disponibile per il quiz.', 'bg-danger btn-danger');
@@ -227,11 +247,16 @@ jQuery(document).ready(function($) {
         }
         generateSection.show();
         
+        uploadSection.hide();
+
         // Aggiorna il testo del pulsante di generazione in base all'azione
         updateActionLabels();
         
         // Carica i dettagli del documento
         loadDocumentDetails();
+    } else {
+        uploadSection.show();
+        documentDetailsRow.hide();
     }
     
     // Gestione del cambio di azione AI
@@ -265,7 +290,9 @@ jQuery(document).ready(function($) {
         // Se compare il quiz player, nascondilo e ripristina la sezione di upload
         hideQuizPlayer();
         // mostra la sezione upload per iniziare nuova generazione
+        // if (!(env_studia_con_ai && env_studia_con_ai.has_document && env_studia_con_ai.document_id)) {
         resetStudiaAiUpload();
+        // }
         
         // Se c'è un documento selezionato, aggiorna l'URL senza ricaricare la pagina
         if (env_studia_con_ai && env_studia_con_ai.has_document && env_studia_con_ai.document_id) {
@@ -326,6 +353,7 @@ jQuery(document).ready(function($) {
         }
 
         $('.studia-ai-generate-summary .card-title').text(`Genera ${sectionLabel}`);
+        $('#studia-ai-generate-summary-label').text(sectionLabel);
     }
 
     function updateGenerateButtonLabel(points) {
@@ -704,6 +732,11 @@ jQuery(document).ready(function($) {
             </div>
         `;
         
+        if (env_studia_con_ai.action === 'quiz') {
+            quizConfigRow.show();
+        } else {
+            quizConfigRow.hide();
+        }
         // Inserisci il messaggio prima della sezione di configurazione
         $('.studia-ai-summary-config').before(messageHtml);
         
@@ -857,7 +890,7 @@ jQuery(document).ready(function($) {
             data: formData,
             processData: false,
             contentType: false,
-            timeout: 30000, // 30 secondi di timeout
+            // timeout: 30000, // 30 secondi di timeout
             beforeSend: function() {
 
             },
@@ -876,6 +909,8 @@ jQuery(document).ready(function($) {
                             quizConfigRow.hide();
                             // Nascondi la sezione con i dettagli del documento caricato
                             $('.studia-ai-document-analysis').hide();
+                            loadSummaryJobs();
+                            updatePointsDisplay();
                             initQuizPlayer(quizArray, difficulty);
                             newGenerationButton.show();
                             return; // evita resto del flusso generazioni
@@ -909,7 +944,11 @@ jQuery(document).ready(function($) {
                         }, 1000);
                     }
                 } else {
-                    showCustomAlert("Errore", response.data.message || 'Errore durante l\'avvio della generazione', 'bg-danger btn-danger');
+                    if (response.data.message === 'Not enough points to remove') {
+                        showCustomAlert("Errore", "Non hai abbastanza punti per effettuare la generazione.", 'bg-danger btn-danger');
+                    } else {
+                        showCustomAlert("Errore", response.data.message || 'Errore durante l\'avvio della generazione', 'bg-danger btn-danger');
+                    }
                     button.prop('disabled', false);
                     fetchDynamicPriceAndUpdateButton();
                 }
@@ -1275,6 +1314,18 @@ jQuery(document).ready(function($) {
     // Funzione globale per avviare un quiz dal job (recupera il JSON dal backend e lo mostra)
     if (!window.downloadQuiz) {
         window.downloadQuiz = function(jobId) {
+            // Se siamo sulla pagina profilo-utente-generazioni-ai, reindirizza a studia-con-ai aprendo il quiz
+            try {
+                const path = window.location.pathname || '';
+                if (path.indexOf('profilo-utente-generazioni-ai') !== -1 || path.indexOf('profilo-utente') !== -1) {
+                    const base = (env_studia_con_ai && env_studia_con_ai.home_url) ? env_studia_con_ai.home_url : window.location.origin;
+                    window.location.href = base.replace(/\/$/, '') + '/studia-con-ai/?open_quiz_job=' + encodeURIComponent(jobId) + '&action=quiz';
+                    return;
+                }
+            } catch (e) {
+                console.error('Errore redirect quiz from profile:', e);
+            }
+
             const button = $(`button[onclick="downloadQuiz(${jobId})"]`);
             const originalText = button.html();
 
@@ -1300,6 +1351,10 @@ jQuery(document).ready(function($) {
                             uploadSection.hide();
                             quizConfigRow.hide();
                             initQuizPlayer(quizArray, difficulty);
+                            newGenerationButton.show();
+                            // Mostra la feature dei quiz selezionata e rimuove la classe active da tutte le altre
+                            $('.studia-ai-feature-item').removeClass('active');
+                            $('.studia-ai-feature-item[data-action="quiz"]').addClass('active');
                             return;
                         } else {
                             showCustomAlert('Errore', 'Impossibile ottenere il quiz.', 'bg-warning btn-warning');
@@ -1414,12 +1469,25 @@ jQuery(document).ready(function($) {
     }
 
     function resetStudiaAiUpload() {
-        uploadSection.show();
+        // Se c'è un documento selezionato, aggiorna l'URL senza ricaricare la pagina
+        if (env_studia_con_ai && env_studia_con_ai.has_document && env_studia_con_ai.document_id) {
+            uploadSection.hide();
+            documentDetailsRow.show();
+            generateSection.show();
+        } else {
+            uploadSection.show();
+            documentDetailsRow.hide();
+            generateSection.hide();
+        }        
         progressSection.hide();
         analysisSection.hide();
         configSection.hide();
-        generateSection.hide();
+        
         newGenerationButton.hide();
+        hideQuizPlayer();
+
+        quizConfigRow.hide();
+              
         fileInput.val('');
         progressBar.css('width', '0%');
         progressBar.html('');

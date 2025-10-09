@@ -128,11 +128,27 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
     </div>
 
     <!-- Sezione documento (condizionale) -->
-    <?php if ($has_document): ?>
-    <!-- Sezione documento selezionato -->
+    
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
+            <!-- Sezione caricamento documento -->
+            <div id="studiaAiUploadSection" class="studia-ai-upload-section" <?php if ($has_document): ?>style="display: none;"<?php endif; ?>>
+                <img fetchpriority="high" src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/upload/upload_logo.svg" alt="Upload logo">
+                <p class="text-large">Trascina qui il tuo documento</p>
+                <p class="text-small">Oppure</p>
+                <button class="button-custom button-custom-blue" onclick="document.getElementById('studiaAiFileInput').click()">
+                    <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/upload/add.svg" class="add-icon">
+                    Scegli tra i file
+                </button>
+                <input type="file" id="studiaAiFileInput" class="d-none" 
+                       accept=".pdf">
+                <p class="text-limit-section">Limite massimo 10 MB per file. Formati accettati: PDF</p>
+            </div>
+
+            <!-- Sezione dettagli documento selezionato -->
+            <div id="document-details-row" class="row" <?php if (!$has_document): ?>style="display: none;"<?php endif; ?>>
+                <div class="col-12">
+                    <div id="document-details-card" class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
@@ -140,7 +156,7 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
                             Documento selezionato
                         </h5>
                         <a href="<?php echo home_url('/studia-con-ai/') . '?action=' . urlencode($action); ?>" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-arrow-left me-1"></i> Scegli altro documento
+                            <i class="fas fa-arrow-left me-1"></i> Carica un altro documento
                         </a>
                     </div>
                 </div>
@@ -155,24 +171,8 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
             </div>
         </div>
     </div>
-    <?php else: ?>
-    <!-- Sezione di caricamento del documento (solo se non c'è un documento selezionato) -->
-    <div class="row">
-        <div class="col-12">
-            <div id="studiaAiUploadSection" class="studia-ai-upload-section">
-                <img fetchpriority="high" src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/upload/upload_logo.svg" alt="Upload logo">
-                <p class="text-large">Trascina qui il tuo documento</p>
-                <p class="text-small">Oppure</p>
-                <button class="button-custom button-custom-blue" onclick="document.getElementById('studiaAiFileInput').click()">
-                    <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/upload/add.svg" class="add-icon">
-                    Scegli tra i file
-                </button>
-                <input type="file" id="studiaAiFileInput" class="d-none" 
-                       accept=".pdf">
-                <p class="text-limit-section">Limite massimo 10 MB per file. Formati accettati: PDF</p>
-            </div>
-        </div>
-    </div>
+    
+    
 
     <!-- Sezione progresso caricamento -->
     <div class="row">
@@ -205,7 +205,7 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
             </div>
         </div>
     </div>
-    <?php endif; ?>
+    
 
         <!-- Sezione Quiz Player (nascosta inizialmente, mostrata via JS quando quiz pronto) -->
         <div class="row mt-4" id="quizPlayerRow" style="display: none;">
@@ -443,15 +443,10 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
             <div class="card">
                 <div class="card-body text-center">
                     <h5 class="card-title mb-3">Genera <?php echo getActionLabel($action); ?></h5>
-                    <div class="alert alert-info mb-4" role="alert">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Generazione asincrona:</strong> Il riassunto verrà generato in background utilizzando le opzioni configurate.
-                        <br><small>Puoi continuare a navigare sul sito mentre il riassunto viene elaborato. Controlla lo stato nella sezione "Le mie generazioni".</small>
-                    </div>
                     <div class="alert alert-warning mb-4" role="alert">
                         <i class="fas fa-clock me-2"></i>
                         <strong>Tempi di elaborazione:</strong> La generazione potrebbe richiedere alcuni minuti a seconda della complessità del documento.
-                        <br><small>Riceverai una notifica quando il riassunto sarà pronto per il download.</small>
+                        <br><small>Puoi continuare a navigare sul sito mentre <span id="studia-ai-generate-summary-label"><?php echo getActionLabel($action); ?></span> viene elaborato. Controlla lo stato nella sezione "Le mie generazioni".</small>
                     </div>
                     <button id="studia-ai-generate-summary" class="btn btn-primary btn-lg" disabled>
                         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
