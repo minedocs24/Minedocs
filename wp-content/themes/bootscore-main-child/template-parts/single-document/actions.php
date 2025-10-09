@@ -80,9 +80,8 @@ $stato_approvazione = $args['stato_approvazione'];
                     <li><a class="dropdown-item" href="#" data-ai-action="mappa" data-product-hid="<?php echo $post_hid; ?>">
                         <i class="fas fa-project-diagram me-2"></i>Mappa concettuale
                     </a></li>
-                    <li><a class="dropdown-item dropdown-item-disabled" href="#" data-ai-action="quiz" data-product-hid="<?php echo $post_hid; ?>" onclick="return false;">
+                    <li><a class="dropdown-item" href="#" data-ai-action="quiz" data-product-hid="<?php echo $post_hid; ?>">
                         <i class="fas fa-question-circle me-2"></i>Quiz
-                        <span class="badge bg-secondary ms-2">Coming Soon</span>
                     </a></li>
                     <li><a class="dropdown-item dropdown-item-disabled" href="#" data-ai-action="evidenza" data-product-hid="<?php echo $post_hid; ?>" onclick="return false;">
                         <i class="fas fa-highlighter me-2"></i>Evidenzia
@@ -547,7 +546,7 @@ window.addEventListener('click', (event) => {
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // Lista delle azioni disponibili
-    const availableActions = ['riassunto', 'mappa'];
+    const availableActions = ['riassunto', 'mappa', 'quiz'];
     
     // Controlla se l'utente ha acquistato il documento
     const aiButton = document.getElementById('aiButton');
