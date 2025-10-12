@@ -25,6 +25,39 @@ jQuery(document).ready(function($) {
     const newGenerationButton = $('#studia-ai-new-generation');
     const documentDetailsRow = $('#document-details-row');
     let currentQuiz = null; // { questions: [...], difficulty: string, idx: 0, score: 0, total: number, answered: boolean, correctAnswer: number }
+    let lastBackendPoints = null; // punti calcolati dal backend per il documento (memorizzati)
+
+    function computeQuizSupplement(numQuestions) {
+        // Prime 5 incluse => 0 supplemento. Ogni 5 domande successive => +1 punto
+        const n = parseInt(numQuestions, 10);
+        if (!n || n <= 5) return 0;
+        return Math.floor((n - 1) / 5);
+    }
+
+    // Centralizza l'aggiornamento del prezzo: se abbiamo il prezzo backend memorizzato
+    // aggiorna client-side, altrimenti invoca la fetch
+    function updatePriceForNumQuestions(numQuestions) {
+        const supplement = computeQuizSupplement(numQuestions);
+        if (lastBackendPoints !== null) {
+            updateGenerateButtonLabel(lastBackendPoints + supplement);
+        } else {
+            fetchDynamicPriceAndUpdateButton();
+        }
+    }
+
+    // Binding delegato per aggiornamento prezzo al variare del numero di domande
+    // Uso delegated events sul document così funziona anche se gli input sono inseriti dinamicamente
+    (function() {
+        const selector = '#quiz-num-questions, #quiz-num-questions-php';
+        // log per debug binding (silenzioso se jQuery non definito)
+        try { console.debug('Binding quiz num questions listener'); } catch (e) {}
+        // usa delegated events
+        $(document).off('input change', selector).on('input change', selector, function() {
+            const val = parseInt($(this).val(), 10);
+            const numQuestions = (!isNaN(val) && val > 0) ? val : null;
+            updatePriceForNumQuestions(numQuestions);
+        });
+    })();
 
     function hideQuizPlayer() {
         if (quizPlayerRow && quizPlayerRow.length) {
@@ -402,9 +435,40 @@ jQuery(document).ready(function($) {
             data,
             success: function(response) {
                 if (response && response.success && response.data && typeof response.data.points !== 'undefined') {
-                    updateGenerateButtonLabel(response.data.points);
+                    // Punti calcolati dal backend
+                    let backendPoints = parseInt(response.data.points, 10) || 0;
+                    // memorizza per ricalcoli client-side
+                    lastBackendPoints = backendPoints;
+
+                    // Determina il numero di domande se presente (dal DOM o dal backend)
+                    let numQuestions = null;
+                    if (env_studia_con_ai && env_studia_con_ai.action === 'quiz') {
+                        try {
+                            const numEl = $('#quiz-num-questions, #quiz-num-questions-php');
+                            if (numEl.length) {
+                                const parsed = parseInt(numEl.val(), 10);
+                                if (!isNaN(parsed)) numQuestions = parsed;
+                            }
+                            // fallback: se il backend ha fornito questions_count
+                            if ((numQuestions === null || typeof numQuestions === 'undefined') && typeof response.data.questions_count !== 'undefined') {
+                                const parsed2 = parseInt(response.data.questions_count, 10);
+                                if (!isNaN(parsed2)) numQuestions = parsed2;
+                            }
+                            // Usa la funzione centralizzata per aggiornare il prezzo (somma backend + supplemento quiz se action=quiz)
+                            updatePriceForNumQuestions(numQuestions);
+                        } catch (e) {
+                            console.error('Errore determinazione numQuestions', e);
+                            updateGenerateButtonLabel(backendPoints);
+                        }
+
+                    } else {//Non è quiz
+                        updateGenerateButtonLabel(backendPoints);
+                    }
+
+                    
                 } else {
                     showCustomAlert('Calcolo prezzo non disponibile', 'Qualcosa è andato storto nel calcolo del prezzo. Riprova più tardi.', 'bg-warning btn-warning');
+                    lastBackendPoints = null;
                     updateGenerateButtonLabel();
                 }
             },
@@ -962,6 +1026,7 @@ jQuery(document).ready(function($) {
             },
             complete: function() {
                 console.log('Avvio generazione completato');
+                updatePointsDisplay();
             }
         });
     });
@@ -1503,12 +1568,16 @@ jQuery(document).ready(function($) {
         }        
         progressSection.hide();
         analysisSection.hide();
+        // Se è quiz e c'è un documento selezionato, mostra la sezione di configurazione
+        if (env_studia_con_ai && env_studia_con_ai.action === 'quiz' && env_studia_con_ai.has_document) {
+            quizConfigRow.show();
+        } else {
+            quizConfigRow.hide();
+        }
         configSection.hide();
         
         newGenerationButton.hide();
         hideQuizPlayer();
-
-        quizConfigRow.hide();
               
         fileInput.val('');
         progressBar.css('width', '0%');

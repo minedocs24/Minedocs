@@ -93,40 +93,18 @@ function handle_generate_map() {
             return;
         }
     }
-        
-    // Verifica il tipo di file (PDF o Word) 
-    // $allowed_types = array('application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-    // if (!in_array($file['type'], $allowed_types)) {
-    //     wp_send_json_error(array('message' => 'Tipo di file non supportato'));
-    //     return;
-    // }
-    
-    // // Verifica dimensione massima (10MB)
-    // $max_file_size = 10 * 1024 * 1024; // 10MB
-    // if ($file['size'] > $max_file_size) {
-    //     wp_send_json_error(array('message' => 'Il file eccede le dimensioni massime consentite (10MB)'));
-    //     return;
-    // }
-    
-    //TO REMOVE
-    // // Per i file caricati, usa file_id se disponibile
-    // if (!isset($_POST['file_id'])) {
-    //     wp_send_json_error(['message' => 'File del documento non trovato']);
-    //     return;
-    // }
-    // $file_id = intval($_POST['file_id']);
-    
-    // // Recupera il percorso del file sul server
-    // $file_path = get_attached_file($file_id);
-    // if (!$file_path || !file_exists($file_path)) {
-    //     wp_send_json_error(['message' => 'File del documento non trovato']);
-    //     return;
-    // }
 
     // Calcola il costo in punti PRO lato server
     $points_cost = ai_calcola_prezzo_punti_per_file($file_id);
     if (is_wp_error($points_cost)) {
         wp_send_json_error(array('message' => 'Impossibile calcolare il costo in punti: ' . $points_cost->get_error_message()));
+        return;
+    }
+
+    // Verifica che l'utente abbia abbastanza punti pro
+    $user_points_pro = get_points_pro_utente(get_current_user_id());
+    if ($user_points_pro < $points_cost) {
+        wp_send_json_error(array('message' => 'Non hai abbastanza punti pro per generare la mappa concettuale.'));
         return;
     }
 
@@ -180,13 +158,9 @@ function handle_generate_map() {
 
         error_log('Flask health check failed: ' . $error_details);
 
-        wp_send_json_error(array('message' => 'Servizio di generazione non disponibile al momento. Riprova più tardi. Nessun punto è stato scalato.'));
+        wp_send_json_error(array('message' => 'Servizio di generazione non disponibile al momento. Riprova più tardi. Nessun punto è stato addebitato.'));
         return;
     }
-
-    // Inizializzazione
-    // $config = array();
-    
 
     // Creazione job in coda, invio job a Flask e salvataggio costo punti
     $result = create_map_generation_job($file_id, $config);

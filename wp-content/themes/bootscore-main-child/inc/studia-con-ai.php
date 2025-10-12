@@ -276,6 +276,13 @@ function handle_generate_summary() {
         return;
     }
 
+    // Verifica che l'utente abbia abbastanza punti pro
+    $user_points_pro = get_points_pro_utente(get_current_user_id());
+    if ($user_points_pro < $points_cost) {
+        wp_send_json_error(array('message' => 'Non hai abbastanza punti pro per generare il riassunto.'));
+        return;
+    }
+
     // Verifica che l'endpoint Flask sia raggiungibile prima di creare il job e scalare punti
     $flask_url = 'http://localhost:4999/summarize';
     $health_check = wp_remote_get($flask_url, array('timeout' => 5, 'blocking' => true));
@@ -324,7 +331,7 @@ function handle_generate_summary() {
 
         error_log('Flask health check failed: ' . $error_details);
 
-        wp_send_json_error(array('message' => 'Servizio di generazione non disponibile al momento. Riprova più tardi. Nessun punto è stato scalato.'));
+        wp_send_json_error(array('message' => 'Servizio di generazione non disponibile al momento. Riprova più tardi. Nessun punto è stato addebitato.'));
         return;
     }
 
@@ -517,33 +524,6 @@ function send_job_to_flask($job_id, $file_id, $config) {
         'timeout' => 10,
         'blocking' => false // Non attendere la risposta
     ));
-    /*
-        $file_path = get_attached_file($file_id);
-    $user_id = get_current_user_id();
-    
-    // Configurazione Flask (da personalizzare)
-    $flask_url = 'http://localhost:5000/summarize';
-    
-    // Prepara i dati per Flask
-    $flask_data = array(
-        'job_id' => $job_id,
-        'user_id' => $user_id,
-        'file_path' => $file_path,
-        'config' => $config,
-        'callback_url' => home_url('/wp-admin/admin-ajax.php?action=summary_completed')
-    );
-    error_log('Flask data: ' . json_encode($flask_data));
-    // Invia in background (non bloccare l'utente)
-    wp_remote_post($flask_url, array(
-        'body' => json_encode($flask_data),
-        'headers' => array('Content-Type' => 'application/json'),
-        'timeout' => 5, // Timeout breve per non bloccare
-        'blocking' => false // Non bloccare l'esecuzione
-    ));
-    */
-    // Log per debug
-    error_log('Flask data: ' . json_encode($payload));
-    error_log('Flask response: ' . print_r($response, true));
 }
 
 /**

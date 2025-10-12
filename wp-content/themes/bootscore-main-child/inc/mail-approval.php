@@ -41,9 +41,6 @@ function send_email_approval_product($product_id){
     // aggiungi header per email in formato HTML
     $headers = array('Content-Type: text/html; charset=UTF-8');
 
-    //TODO: eliminare
-    //wp_mail('frankheat03@gmail.com', $subject, $message, $headers);
-
     // invia l'email ad ogni amministratore
     foreach ($admin_email as $admin) {
         error_log("Invio email a: ".$admin->user_email);
@@ -335,9 +332,6 @@ function send_email_approve_product_edit($product_id, $edited_fields){
 
     // aggiungi header per email in formato HTML
     $headers = array('Content-Type: text/html; charset=UTF-8');
-
-    //TODO: eliminare
-    // wp_mail('frankheat03@gmail.com', $subject, $message, $headers);
 
     // invia l'email ad ogni amministratore
     foreach ($admin_email as $admin) {
