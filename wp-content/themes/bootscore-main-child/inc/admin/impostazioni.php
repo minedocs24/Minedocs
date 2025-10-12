@@ -61,6 +61,26 @@ $fields = [
         'type' => 'text',
         'default' => '8\'w4VDl!+b/C:|p88G*c%6cb9'
     ],
+    'FLASK_MAP_API_URL' => [
+        'label' => 'Flask MindMap API URL',
+        'type' => 'text',
+        'default' => 'http://localhost:4997/generate'
+    ],
+    'FLASK_MAP_API_URL_HEALTH' => [
+        'label' => 'Flask MindMap API URL Health',
+        'type' => 'text',
+        'default' => 'http://localhost:4997/health'
+    ],
+    'FLASK_QUIZ_API_URL' => [
+        'label' => 'Flask Quiz API URL',
+        'type' => 'text',
+        'default' => 'http://localhost:4996/generate-quiz'
+    ],
+    'FLASK_QUIZ_API_URL_HEALTH' => [
+        'label' => 'Flask Quiz API URL Health',
+        'type' => 'text',
+        'default' => 'http://localhost:4996/health'
+    ],
     'SKU_ABBONAMENTO_30_GIORNI' => [
         'label' => 'SKU Abbonamento 30 Giorni',
         'type' => 'text',
@@ -531,6 +551,22 @@ function registra_impostazioni_generali() {
         ],
         'FLASK_ANALYSIS_API_KEY' => [
             'label' => 'Flask Analysis API Key',
+            'type' => 'text'
+        ],
+        'FLASK_MAP_API_URL' => [
+            'label' => 'Flask MindMap API URL',
+            'type' => 'text'
+        ],
+        'FLASK_MAP_API_URL_HEALTH' => [
+            'label' => 'Flask MindMap API URL Health',
+            'type' => 'text'
+        ],
+        'FLASK_QUIZ_API_URL' => [
+            'label' => 'Flask Quiz API URL',
+            'type' => 'text'
+        ],
+        'FLASK_QUIZ_API_URL_HEALTH' => [
+            'label' => 'Flask Quiz API URL Health',
             'type' => 'text'
         ],
         'SKU_ABBONAMENTO_30_GIORNI' => [

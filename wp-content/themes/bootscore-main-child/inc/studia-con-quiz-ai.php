@@ -116,7 +116,7 @@ function handle_generate_quiz() {
     }
 
     // Verifica che l'endpoint Flask sia raggiungibile prima di creare il job e scalare punti
-    $api_url = getenv('FLASK_QUIZ_API_URL_HEALTH');
+    $api_url = FLASK_QUIZ_API_URL_HEALTH;
     $health_check = wp_remote_get($api_url, array('timeout' => 5, 'blocking' => true));
 
     //Controlla se il servizio è disponibile
@@ -291,7 +291,7 @@ function send_quiz_to_flask($file_id, $question_number, $difficulty, $job_id){
     if(!$file_path || !file_exists($file_path)){
         return new WP_Error('file_not_found', 'File non trovato');
     }
-    $flask_url = getenv('FLASK_QUIZ_API_URL');
+    $flask_url = FLASK_QUIZ_API_URL;
     if(empty($flask_url)){
         error_log('FLASK_QUIZ_API_URL non configurato');
         return new WP_Error('flask_url_not_found', 'URL Flask non configurato');

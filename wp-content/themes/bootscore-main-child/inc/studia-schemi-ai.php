@@ -109,7 +109,7 @@ function handle_generate_map() {
     }
 
     // Gestione health del servizio Flask
-    $api_url = getenv('FLASK_MAP_API_URL_HEALTH');
+    $api_url = FLASK_MAP_API_URL_HEALTH;
     $health_check = wp_remote_get($api_url, array('timeout' => 5, 'blocking' => true));
 
     //Controlla se il servizio è disponibile
@@ -251,7 +251,7 @@ function send_map_job_to_flask($job_id, $file_id, $config) {
     $file_path = get_attached_file($file_id);
 
     // Endpoint corretto
-    $flask_url = getenv('FLASK_MAP_API_URL');
+    $flask_url = FLASK_MAP_API_URL;
     
     // Verifica che l'URL sia configurato
     if (empty($flask_url)) {
@@ -498,7 +498,7 @@ function handle_test_flask_health() {
     // Controlla il nonce per la sicurezza ajax
     check_ajax_referer('studia_con_ai_nonce', 'nonce');
 
-    $flask_url = getenv('FLASK_MAP_API_URL_HEALTH');
+    $flask_url = FLASK_MAP_API_URL_HEALTH;
     $response = wp_remote_get($flask_url, array(
         'timeout' => 10,
         'blocking' => true
