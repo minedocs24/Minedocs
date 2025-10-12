@@ -1,7 +1,16 @@
 <?php
 
+// Recupera i punti pro dell'utente corrente
 
+function get_points_pro_utente($user_id) {
+    global $sistemiPunti;
+    return $sistemiPunti['pro']->ottieni_totale_punti($user_id);
+}
 
+function get_points_blu_utente($user_id) {
+    global $sistemiPunti;
+    return $sistemiPunti['blu']->ottieni_totale_punti($user_id);
+}
 
 
 function get_updated_points() {

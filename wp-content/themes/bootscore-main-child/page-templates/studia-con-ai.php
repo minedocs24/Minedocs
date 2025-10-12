@@ -29,7 +29,7 @@ $document_id = isset($_GET['document_id']) ? sanitize_text_field($_GET['document
 $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'riassunto';
 
 // Lista delle azioni disponibili
-$available_actions = array('riassunto', 'summary', 'mappa');
+$available_actions = array('riassunto', 'summary', 'mappa', 'quiz');
 
 // Se l'azione non è disponibile, reindirizza a riassunto
 if (!in_array($action, $available_actions)) {
@@ -57,6 +57,7 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
     'nonce'    => wp_create_nonce('studia_con_ai_nonce'),
     'nonce_generate_summary' => wp_create_nonce('nonce_generate_summary'),
     'nonce_generate_mappe' => wp_create_nonce('nonce_generate_mappe'),
+    'nonce_generate_quiz' => wp_create_nonce('nonce_generate_quiz'),
     'nonce_get_dynamic_price' => wp_create_nonce('nonce_get_dynamic_price'),
     'nonce_summary_jobs' => wp_create_nonce('nonce_summary_jobs'),
     'nonce_document_details' => wp_create_nonce('nonce_document_details'),
@@ -109,11 +110,11 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
                     <div class="studia-ai-feature-text">Evidenzia nel documento <span class="badge bg-secondary">Coming Soon</span></div>
                 </div>
 
-                <div class="studia-ai-feature-item <?php echo ($action === 'quiz') ? 'active' : ''; ?> coming-soon" data-action="quiz">
+                <div class="studia-ai-feature-item <?php echo ($action === 'quiz') ? 'active' : ''; ?>" data-action="quiz">
                     <div class="studia-ai-feature-icon">
                         <i class="fas fa-question-circle"></i>
                     </div>
-                    <div class="studia-ai-feature-text">Crea un quiz <span class="badge bg-secondary">Coming Soon</span></div>
+                    <div class="studia-ai-feature-text">Crea un quiz</div>
                 </div>
 
                 <div class="studia-ai-feature-item <?php echo ($action === 'interroga') ? 'active' : ''; ?> coming-soon" data-action="interroga">
@@ -127,11 +128,27 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
     </div>
 
     <!-- Sezione documento (condizionale) -->
-    <?php if ($has_document): ?>
-    <!-- Sezione documento selezionato -->
+    
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card">
+            <!-- Sezione caricamento documento -->
+            <div id="studiaAiUploadSection" class="studia-ai-upload-section" <?php if ($has_document): ?>style="display: none;"<?php endif; ?>>
+                <img fetchpriority="high" src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/upload/upload_logo.svg" alt="Upload logo">
+                <p class="text-large">Trascina qui il tuo documento</p>
+                <p class="text-small">Oppure</p>
+                <button class="button-custom button-custom-blue" onclick="document.getElementById('studiaAiFileInput').click()">
+                    <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/upload/add.svg" class="add-icon">
+                    Scegli tra i file
+                </button>
+                <input type="file" id="studiaAiFileInput" class="d-none" 
+                       accept=".pdf">
+                <p class="text-limit-section">Limite massimo 10 MB per file. Formati accettati: PDF</p>
+            </div>
+
+            <!-- Sezione dettagli documento selezionato -->
+            <div id="document-details-row" class="row" <?php if (!$has_document): ?>style="display: none;"<?php endif; ?>>
+                <div class="col-12">
+                    <div id="document-details-card" class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">
@@ -139,7 +156,7 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
                             Documento selezionato
                         </h5>
                         <a href="<?php echo home_url('/studia-con-ai/') . '?action=' . urlencode($action); ?>" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-arrow-left me-1"></i> Scegli altro documento
+                            <i class="fas fa-arrow-left me-1"></i> Carica un altro documento
                         </a>
                     </div>
                 </div>
@@ -154,24 +171,8 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
             </div>
         </div>
     </div>
-    <?php else: ?>
-    <!-- Sezione di caricamento del documento (solo se non c'è un documento selezionato) -->
-    <div class="row">
-        <div class="col-12">
-            <div id="studiaAiUploadSection" class="studia-ai-upload-section">
-                <img fetchpriority="high" src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/upload/upload_logo.svg" alt="Upload logo">
-                <p class="text-large">Trascina qui il tuo documento</p>
-                <p class="text-small">Oppure</p>
-                <button class="button-custom button-custom-blue" onclick="document.getElementById('studiaAiFileInput').click()">
-                    <img src="<?php echo get_stylesheet_directory_uri(); ?>/assets/img/upload/add.svg" class="add-icon">
-                    Scegli tra i file
-                </button>
-                <input type="file" id="studiaAiFileInput" class="d-none" 
-                       accept=".pdf">
-                <p class="text-limit-section">Limite massimo 10 MB per file. Formati accettati: PDF</p>
-            </div>
-        </div>
-    </div>
+    
+    
 
     <!-- Sezione progresso caricamento -->
     <div class="row">
@@ -204,7 +205,67 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
             </div>
         </div>
     </div>
-    <?php endif; ?>
+    
+
+        <!-- Sezione Quiz Player (nascosta inizialmente, mostrata via JS quando quiz pronto) -->
+        <div class="row mt-4" id="quizPlayerRow" style="display: none;">
+        <div class="col-12">
+            <div class="card shadow-sm" id="quizPlayer">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0 d-flex align-items-center">
+                        <i class="fas fa-question-circle text-primary me-2"></i>
+                        Quiz
+                        <span class="badge bg-info ms-3" id="quizDifficultyBadge">-</span>
+                    </h5>
+                    <div class="w-50">
+                        <div class="progress" style="height: 10px;">
+                            <div class="progress-bar" id="quizProgressBar" role="progressbar" style="width: 0%;"></div>
+                        </div>
+                        <div class="text-end mt-1 small text-muted" id="quizProgressText">Domanda 0 di 0</div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Schermata iniziale -->
+                    <div id="quizStart" class="text-center" style="display: none;">
+                        <div class="mb-3">
+                            <i class="fas fa-play-circle fa-3x text-primary"></i>
+                        </div>
+                        <p class="lead mb-3">Sei pronto a iniziare il quiz?</p>
+                        <button class="btn btn-primary btn-lg" id="quizStartBtn">
+                            <i class="fas fa-play me-2"></i>Inizia Quiz
+                        </button>
+                    </div>
+
+                    <!-- Schermata di gioco -->
+                    <div id="quizPlay" style="display: none;">
+                        <h5 id="quizQuestionText" class="mb-4"></h5>
+                        <div id="quizOptions" class="row g-3"></div>
+                        <div class="d-flex justify-content-end mt-4">
+                            <button class="btn btn-secondary" id="quizNextBtn" disabled>
+                                Prossima domanda <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Schermata finale -->
+                    <div id="quizResult" class="text-center" style="display: none;">
+                        <div class="mb-3">
+                            <i class="fas fa-trophy fa-3x text-warning"></i>
+                        </div>
+                        <h4 class="mb-2">Quiz completato!</h4>
+                        <p class="lead">
+                            Punteggio: <strong id="quizScore">0/0</strong>
+                        </p>
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary" id="quizRetryBtn">
+                                <i class="fas fa-redo me-2"></i>Ripeti Quiz
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Sezione di configurazione del riassunto (nascosta inizialmente) -->
     <div class="row studia-ai-summary-config mt-4" style="display: none;">
@@ -341,21 +402,51 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
         </div>
     </div>
 
+    <!-- Sezione di configurazione per i Quiz (nascosta inizialmente, mostrata via JS quando action=quiz) -->
+    <div class="row studia-ai-quiz-config-row mt-4" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-cog text-primary me-2"></i>
+                        Configura il quiz
+                        <span class="badge bg-success ms-2">Configurazione quiz</span>
+                    </h5>
+                    <form id="studia-ai-quiz-form">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="quiz-num-questions-php" class="form-label">Numero domande</label>
+                                <input type="number" id="quiz-num-questions-php" name="num_questions" class="form-control" min="1" max="20" value="5">
+                                <small class="text-muted">Min: 1, Max: 20</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="quiz-difficulty-php" class="form-label">Difficoltà</label>
+                                <select id="quiz-difficulty-php" name="difficulty" class="form-select">
+                                    <option value="easy">Facile</option>
+                                    <option value="medium" selected>Media</option>
+                                    <option value="hard">Difficile</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="text-end mt-3">
+                            <small class="text-muted">I parametri selezionati verranno inviati alla generazione del quiz.</small>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Sezione di generazione del riassunto (nascosta inizialmente) -->
     <div class="row studia-ai-generate-summary mt-4" style="display: none;">
         <div class="col-12">
             <div class="card">
                 <div class="card-body text-center">
                     <h5 class="card-title mb-3">Genera <?php echo getActionLabel($action); ?></h5>
-                    <div class="alert alert-info mb-4" role="alert">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Generazione asincrona:</strong> Il riassunto verrà generato in background utilizzando le opzioni configurate.
-                        <br><small>Puoi continuare a navigare sul sito mentre il riassunto viene elaborato. Controlla lo stato nella sezione "Le mie generazioni".</small>
-                    </div>
                     <div class="alert alert-warning mb-4" role="alert">
                         <i class="fas fa-clock me-2"></i>
                         <strong>Tempi di elaborazione:</strong> La generazione potrebbe richiedere alcuni minuti a seconda della complessità del documento.
-                        <br><small>Riceverai una notifica quando il riassunto sarà pronto per il download.</small>
+                        <br><small>Puoi continuare a navigare sul sito mentre <span id="studia-ai-generate-summary-label"><?php echo getActionLabel($action); ?></span> viene elaborato. Controlla lo stato nella sezione "Le mie generazioni".</small>
                     </div>
                     <button id="studia-ai-generate-summary" class="btn btn-primary btn-lg" disabled>
                         <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
@@ -364,6 +455,11 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
                 </div>
             </div>
         </div>
+    </div>
+    <div class="mt-3 text-center">
+        <button id="studia-ai-new-generation" class="btn btn-primary btn-lg" style="display:none;">
+            <i class="fas fa-plus me-2"></i> Avvia Nuova Generazione
+        </button>
     </div>
 
     <!-- Sezione "Le mie generazioni" -->

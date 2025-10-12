@@ -276,6 +276,13 @@ function handle_generate_summary() {
         return;
     }
 
+    // Verifica che l'utente abbia abbastanza punti pro
+    $user_points_pro = get_points_pro_utente(get_current_user_id());
+    if ($user_points_pro < $points_cost) {
+        wp_send_json_error(array('message' => 'Non hai abbastanza punti pro per generare il riassunto.'));
+        return;
+    }
+
     // Verifica che l'endpoint Flask sia raggiungibile prima di creare il job e scalare punti
     $flask_url = 'http://localhost:4999/summarize';
     $health_check = wp_remote_get($flask_url, array('timeout' => 5, 'blocking' => true));
@@ -324,7 +331,7 @@ function handle_generate_summary() {
 
         error_log('Flask health check failed: ' . $error_details);
 
-        wp_send_json_error(array('message' => 'Servizio di generazione non disponibile al momento. Riprova più tardi. Nessun punto è stato scalato.'));
+        wp_send_json_error(array('message' => 'Servizio di generazione non disponibile al momento. Riprova più tardi. Nessun punto è stato addebitato.'));
         return;
     }
 
@@ -517,33 +524,6 @@ function send_job_to_flask($job_id, $file_id, $config) {
         'timeout' => 10,
         'blocking' => false // Non attendere la risposta
     ));
-    /*
-        $file_path = get_attached_file($file_id);
-    $user_id = get_current_user_id();
-    
-    // Configurazione Flask (da personalizzare)
-    $flask_url = 'http://localhost:5000/summarize';
-    
-    // Prepara i dati per Flask
-    $flask_data = array(
-        'job_id' => $job_id,
-        'user_id' => $user_id,
-        'file_path' => $file_path,
-        'config' => $config,
-        'callback_url' => home_url('/wp-admin/admin-ajax.php?action=summary_completed')
-    );
-    error_log('Flask data: ' . json_encode($flask_data));
-    // Invia in background (non bloccare l'utente)
-    wp_remote_post($flask_url, array(
-        'body' => json_encode($flask_data),
-        'headers' => array('Content-Type' => 'application/json'),
-        'timeout' => 5, // Timeout breve per non bloccare
-        'blocking' => false // Non bloccare l'esecuzione
-    ));
-    */
-    // Log per debug
-    error_log('Flask data: ' . json_encode($payload));
-    error_log('Flask response: ' . print_r($response, true));
 }
 
 /**
@@ -697,161 +677,6 @@ function extract_text_with_tika($file_path) {
     }
 }
 
-/**
- * Genera il riassunto dal testo basato sui parametri
- * TEMPORANEAMENTE COMMENTATO - In futuro si integrerà con Flask
- */
-function generate_summary_from_text($text, $config) {
-    /*
-    // CODICE TEMPORANEAMENTE COMMENTATO
-    // Per ora, creiamo un riassunto semplice
-    // In futuro, qui si integrerà con un servizio AI reale
-    
-    $summary = "RIASSUNTO GENERATO CON STUDIA CON AI\n";
-    $summary .= "=====================================\n\n";
-    
-    $summary .= "PARAMETRI UTILIZZATI:\n";
-    $summary .= "=====================\n";
-    $summary .= "- Modalità: " . ucfirst($config['mode']) . "\n";
-    $summary .= "- Livello di dettaglio: " . ucfirst($config['detail_level']) . "\n";
-    $summary .= "- Lingua: " . ucfirst($config['language']) . "\n";
-    $summary .= "- Tempo di lettura: " . ucfirst($config['reading_time']) . "\n";
-    
-    // Parametri avanzati (solo se popolati)
-    if (isset($config['max_words']) && $config['max_words'] !== '' && $config['max_words'] !== null) {
-        $summary .= "- Parole massime: " . $config['max_words'] . "\n";
-    }
-    if (isset($config['min_words']) && $config['min_words'] !== '' && $config['min_words'] !== null) {
-        $summary .= "- Parole minime: " . $config['min_words'] . "\n";
-    }
-    if (isset($config['include_quotes']) && $config['include_quotes'] !== '' && $config['include_quotes'] !== null) {
-        $summary .= "- Includi citazioni: " . ucfirst($config['include_quotes']) . "\n";
-    }
-    if (isset($config['tone']) && $config['tone'] !== '' && $config['tone'] !== null) {
-        $summary .= "- Tono: " . ucfirst($config['tone']) . "\n";
-    }
-    if (isset($config['comprehension_level']) && $config['comprehension_level'] !== '' && $config['comprehension_level'] !== null) {
-        $summary .= "- Livello di comprensione: " . ucfirst($config['comprehension_level']) . "\n";
-    }
-    if (isset($config['summary_objective']) && $config['summary_objective'] !== '' && $config['summary_objective'] !== null) {
-        $summary .= "- Obiettivo: " . ucfirst($config['summary_objective']) . "\n";
-    }
-    
-    $summary .= "\nTESTO ORIGINALE:\n";
-    $summary .= "================\n";
-    $summary .= substr($text, 0, 1000) . "...\n\n";
-    
-    $summary .= "RIASSUNTO:\n";
-    $summary .= "==========\n";
-    
-    // Genera un riassunto più realistico basato sui parametri
-    $word_count = str_word_count($text);
-    $summary .= "Questo è un riassunto di esempio generato dal sistema Studia con AI.\n\n";
-    
-    // Adatta il riassunto in base alla modalità
-    if ($config['mode'] === 'discorsivo') {
-        $summary .= "Il documento originale contiene " . $word_count . " parole e presenta i seguenti contenuti principali:\n\n";
-        $summary .= "Il testo analizzato tratta di argomenti di interesse generale, strutturati in modo logico e sequenziale. ";
-        $summary .= "I concetti principali sono presentati in modo discorsivo, facilitando la comprensione e l'apprendimento.\n\n";
-    } else { // elenco
-        $summary .= "Il documento originale contiene " . $word_count . " parole. Ecco i punti principali:\n\n";
-        $summary .= "• Primo punto chiave del documento\n";
-        $summary .= "• Secondo punto importante da ricordare\n";
-        $summary .= "• Terzo concetto fondamentale\n";
-        $summary .= "• Quarto elemento significativo\n\n";
-    }
-    
-    // Adatta in base al livello di dettaglio
-    switch ($config['detail_level']) {
-        case 'alto':
-            $summary .= "Il riassunto è stato generato con un livello di dettaglio elevato, includendo tutti i concetti principali e secondari.\n";
-            break;
-        case 'medio':
-            $summary .= "Il riassunto mantiene un equilibrio tra completezza e concisione, focalizzandosi sui concetti essenziali.\n";
-            break;
-        case 'basso':
-            $summary .= "Il riassunto è conciso e focalizzato sui punti chiave, ideale per una rapida revisione.\n";
-            break;
-    }
-    
-    // Adatta in base al tempo di lettura
-    switch ($config['reading_time']) {
-        case 'breve':
-            $summary .= "Tempo di lettura stimato: 2-3 minuti\n";
-            break;
-        case 'medio':
-            $summary .= "Tempo di lettura stimato: 5-7 minuti\n";
-            break;
-        case 'lungo':
-            $summary .= "Tempo di lettura stimato: 10-15 minuti\n";
-            break;
-    }
-    
-    // Adatta in base al tono (solo se specificato)
-    if (isset($config['tone']) && $config['tone'] !== '' && $config['tone'] !== null) {
-        switch ($config['tone']) {
-            case 'informale':
-                $summary .= "Il tono utilizzato è informale e amichevole.\n";
-                break;
-            case 'professionale':
-                $summary .= "Il tono utilizzato è professionale e formale.\n";
-                break;
-            case 'tecnico':
-                $summary .= "Il tono utilizzato è tecnico e specialistico.\n";
-                break;
-            default:
-                $summary .= "Il tono utilizzato è neutro e bilanciato.\n";
-                break;
-        }
-    }
-    
-    // Adatta in base al livello di comprensione (solo se specificato)
-    if (isset($config['comprehension_level']) && $config['comprehension_level'] !== '' && $config['comprehension_level'] !== null) {
-        switch ($config['comprehension_level']) {
-            case 'liceale':
-                $summary .= "Il riassunto è adattato per un livello di comprensione liceale.\n";
-                break;
-            case 'universitario':
-                $summary .= "Il riassunto è adattato per un livello di comprensione universitario.\n";
-                break;
-            case 'esperto':
-                $summary .= "Il riassunto è adattato per un livello di comprensione esperto.\n";
-                break;
-            case 'bambino':
-                $summary .= "Il riassunto è adattato per un livello di comprensione elementare.\n";
-                break;
-        }
-    }
-    
-    // Adatta in base all'obiettivo (solo se specificato)
-    if (isset($config['summary_objective']) && $config['summary_objective'] !== '' && $config['summary_objective'] !== null) {
-        switch ($config['summary_objective']) {
-            case 'studiare':
-                $summary .= "Il riassunto è ottimizzato per lo studio e la memorizzazione.\n";
-                break;
-            case 'presentare':
-                $summary .= "Il riassunto è strutturato per essere utilizzato in presentazioni.\n";
-                break;
-            case 'condividere':
-                $summary .= "Il riassunto è adattato per la condivisione online.\n";
-                break;
-            case 'ripetere':
-                $summary .= "Il riassunto è ottimizzato per la ripetizione e il ripasso.\n";
-                break;
-        }
-    }
-    
-    $summary .= "\n" . str_repeat("=", 50) . "\n";
-    $summary .= "Data di generazione: " . date('d/m/Y H:i:s') . "\n";
-    $summary .= "Generato da: Studia con AI - Minedocs\n";
-    $summary .= "Lingua: " . ucfirst($config['language']) . "\n";
-    
-    return $summary;
-    */
-    
-    // TEMPORANEO: Ritorna un messaggio di placeholder
-    return "Generazione riassunto temporaneamente disabilitata. In attesa dell'integrazione con Flask.";
-}
 add_action('wp_ajax_generate_summary', 'handle_generate_summary');
 add_action('wp_ajax_nopriv_generate_summary', 'handle_generate_summary'); 
 

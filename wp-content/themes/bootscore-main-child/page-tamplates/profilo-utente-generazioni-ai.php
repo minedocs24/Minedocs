@@ -411,14 +411,28 @@ jQuery(document).ready(function($) {
         <div class="col-md-6">
           <h6><i class="fas fa-info-circle me-2"></i>Informazioni Generali</h6>
           <table class="table table-sm">
-            <tr><td><strong>ID Job:</strong></td><td>${job.job_id}</td></tr>
             <tr><td><strong>Tipo:</strong></td><td>${requestType}</td></tr>
             <tr><td><strong>Stato:</strong></td><td>${getStatusBadge(job.status)}</td></tr>
             <tr><td><strong>Data richiesta:</strong></td><td>${date}</td></tr>
             <tr><td><strong>Costo (Punti Pro):</strong></td><td>${puntiText}</td></tr>
           </table>
-        </div>
-        ${env_studia_con_ai.hide_params ? '' : `
+        </div>`;
+    // Se è un quiz, mostra i dettagli nella colonna accanto
+    if (job.request_type === 'quiz') {
+      const numQ = config.question_number || config.num_questions || '-';
+      const diffRaw = (config.difficulty || '-').toString().toLowerCase();
+      const diffIt = diffRaw === 'easy' || diffRaw === 'facile' ? 'Facile' : (diffRaw === 'medium' || diffRaw === 'media' ? 'Media' : (diffRaw === 'hard' || diffRaw === 'difficile' ? 'Difficile' : (config.difficulty || '-')));
+      html += `
+          <div class="col-md-6">
+              <h6>Dettagli Quiz</h6>
+              <table class="table table-sm">
+                  <tr><td><strong>Numero domande:</strong></td><td>${numQ}</td></tr>
+                  <tr><td><strong>Difficoltà:</strong></td><td>${diffIt}</td></tr>
+              </table>
+          </div>
+      `;
+    }
+    html += `${env_studia_con_ai.hide_params ? '' : `
         <div class="col-md-6">
           <h6><i class="fas fa-cog me-2"></i>Parametri Configurazione</h6>
           <table class="table table-sm">
@@ -444,8 +458,8 @@ jQuery(document).ready(function($) {
       html += `
         <div class="alert alert-success mt-3">
           <h6><i class="fas fa-check-circle me-2"></i>Risultato disponibile</h6>
-          <button class="btn btn-success" onclick="downloadSummary(${job.job_id})">
-            <i class="fas fa-download me-2"></i>Scarica risultato
+          <button class="btn btn-success" onclick="${job.request_type === 'quiz' ? `downloadQuiz(${job.job_id})` : `downloadSummary(${job.job_id})`}">
+              <i class="fas fa-${job.request_type === 'quiz' ? 'play' : 'download'}"></i> ${job.request_type === 'quiz' ? 'Avvia quiz' : 'Scarica risultato'}
           </button>
         </div>
       `;
