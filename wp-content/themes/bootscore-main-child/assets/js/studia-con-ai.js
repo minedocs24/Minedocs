@@ -638,7 +638,7 @@ jQuery(document).ready(function($) {
 
         // Previene chiamate multiple
         if (isUploading) {
-            console.log('Upload già in corso, ignoro la chiamata');
+            // console.log('Upload già in corso, ignoro la chiamata');
             return;
         }
         
@@ -731,7 +731,7 @@ jQuery(document).ready(function($) {
             },
             beforeSend: function() {
                 // Azioni prima dell'invio
-                console.log('Inizio upload del file:', file.name);
+                // console.log('Inizio upload del file:', file.name);
             },
             success: function(response) {
                 clearInterval(progressInterval);
@@ -774,7 +774,7 @@ jQuery(document).ready(function($) {
             },
             complete: function() {
                 // Azioni al completamento (successo o errore)
-                console.log('Upload completato');
+                // console.log('Upload completato');
                 isUploading = false; // Reset del flag
             }
         });
@@ -964,7 +964,6 @@ jQuery(document).ready(function($) {
                     showCustomAlert("Generazione avviata!", response.data.message, 'bg-success btn-success');
                     // Se si tratta di quiz, mostra direttamente il player con i dati ricevuti
                     if (selectedAction === 'quiz' && response.data && response.data.quiz_data && Array.isArray(response.data.quiz_data.quiz)) {
-                        console.log('Entro nel if');
                         try {
                             const quizArray = response.data.quiz_data.quiz;
                             const difficulty = response.data.difficulty || 'medium';
@@ -1025,7 +1024,7 @@ jQuery(document).ready(function($) {
                 updateGenerateButtonLabel();
             },
             complete: function() {
-                console.log('Avvio generazione completato');
+                // console.log('Avvio generazione completato');
                 updatePointsDisplay();
             }
         });

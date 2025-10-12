@@ -416,7 +416,7 @@ wp_localize_script('studia-con-ai-script', 'env_studia_con_ai', array(
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="quiz-num-questions-php" class="form-label">Numero domande</label>
-                                <input type="number" id="quiz-num-questions-php" name="num_questions" class="form-control" min="1" max="20" value="10">
+                                <input type="number" id="quiz-num-questions-php" name="num_questions" class="form-control" min="1" max="20" value="5">
                                 <small class="text-muted">Min: 1, Max: 20</small>
                             </div>
                             <div class="col-md-6 mb-3">
