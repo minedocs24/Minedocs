@@ -61,6 +61,16 @@ $fields = [
         'type' => 'text',
         'default' => '8\'w4VDl!+b/C:|p88G*c%6cb9'
     ],
+    'FLASK_SUMMARY_API_URL' => [
+        'label' => 'Flask Summary API URL',
+        'type' => 'text',
+        'default' => 'http://localhost:4999/summarize'
+    ],
+    'FLASK_SUMMARY_API_URL_DOWNLOAD' => [
+        'label' => 'Flask Summary download API URL',
+        'type' => 'text',
+        'default' => 'http://localhost:4999/download/'
+    ],
     'FLASK_MAP_API_URL' => [
         'label' => 'Flask MindMap API URL',
         'type' => 'text',
@@ -551,6 +561,14 @@ function registra_impostazioni_generali() {
         ],
         'FLASK_ANALYSIS_API_KEY' => [
             'label' => 'Flask Analysis API Key',
+            'type' => 'text'
+        ],
+        'FLASK_SUMMARY_API_URL' => [
+            'label' => 'Flask Summary API URL',
+            'type' => 'text'
+        ],
+        'FLASK_SUMMARY_API_URL_DOWNLOAD' => [
+            'label' => 'Flask Summary download API URL',
             'type' => 'text'
         ],
         'FLASK_MAP_API_URL' => [

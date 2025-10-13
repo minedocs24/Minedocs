@@ -66,18 +66,7 @@ function handle_generate_map() {
         }
         
         $file_id = intval($file_anteprima_id);
-    // }  elseif (isset($_POST['file_id']) && intval($_POST['file_id']) > 0) {
-    //     // Usa file_id di test senza upload
-    //     $file_id = intval($_POST['file_id']);
-    
-    // } elseif (isset($_FILES['document'])) {
-    //     // Upload reale
-    //     $file = $_FILES['document'];
-    //     // verifica tipo, dimensione
-    //     $file_id = intval($_POST['file_id']);
-    // } else {
-    //     wp_send_json_error(['message' => 'Nessun file caricato']);
-    //     return;
+
     } else {
         // Documento caricato tramite upload
         if (!isset($_POST['file_id'])) {
@@ -283,28 +272,6 @@ function send_map_job_to_flask($job_id, $file_id, $config) {
         'blocking' => false // Non attendere la risposta 
     ));
 
-    // // Gestione errori di connessione
-    // if (is_wp_error($response)) {
-    //     $error_message = 'Errore di connessione a Flask: ' . $response->get_error_message();
-    //     error_log($error_message);
-    //     studia_ai_update_job_status($job_id, 'error', array('error_message' => $error_message));
-    //     return false;
-    // }
-
-    // // Controlla il codice di risposta HTTP
-    // $http_code = wp_remote_retrieve_response_code($response);
-    // $body = wp_remote_retrieve_body($response);
-    
-    // error_log('Flask response code: ' . $http_code);
-    // error_log('Flask response body: ' . $body);
-
-    // if ($http_code < 200 || $http_code >= 300) {
-    //     $error_message = 'Flask ha restituito errore HTTP ' . $http_code . ': ' . $body;
-    //     error_log($error_message);
-    //     studia_ai_update_job_status($job_id, 'error', array('error_message' => $error_message));
-    //     return false;
-    // }
-
     // Se arriviamo qui, la richiesta è andata a buon fine
     error_log('Job inviato a Flask con successo');
     return true;
@@ -397,7 +364,7 @@ function handle_map_completed() {
             $pdf_url = '';
             if ($png_file) {
                 // Costruisci l'URL assumendo che i file siano serviti da Flask
-                $pdf_url = 'http://localhost:4999/download/' . urlencode($png_file);
+                $pdf_url = FLASK_SUMMARY_API_URL_DOWNLOAD . urlencode($png_file);
             }
             error_log('Callback Flask: pdf_url: ' . $pdf_url);
             // Prepara i dati aggiuntivi per l'aggiornamento

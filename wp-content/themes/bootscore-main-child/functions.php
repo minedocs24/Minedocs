@@ -70,6 +70,7 @@ require_once __DIR__ . '/inc/studia-AI/gestione-documenti.php';
 require_once __DIR__ . '/inc/studia-AI/callbacks.php';
 require_once __DIR__ . '/inc/studia-schemi-ai.php';
 require_once __DIR__ . '/inc/studia-con-quiz-ai.php';
+require_once __DIR__ . '/inc/studia-con-riassunti-ai.php';
 
 use setasign\Fpdi\Tcpdf\Fpdi;
 // BEGIN ENQUEUE PARENT ACTION
