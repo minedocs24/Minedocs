@@ -50,53 +50,18 @@ function handle_generate_quiz() {
     }
 
     //5.Conversione: file_id -> file_path
-    // Gestione per documenti già presenti in piattaforma
-    if (isset($_POST['document_id']) && !empty($_POST['document_id'])) {
-        // Documento già presente in piattaforma
-        $document_id = sanitize_text_field($_POST['document_id']);
-        $product_id = get_product_id_by_hash($document_id);
-        
-        if (!$product_id) {
-            wp_send_json_error(array('message' => 'Documento non trovato'));
-            return;
-        }
-        
-        // Recupera il file_id dal prodotto
-        $file_anteprima_id = get_post_meta($product_id, '_file_anteprima', true);
-        if (!$file_anteprima_id) {
-            wp_send_json_error(array('message' => 'File del documento non trovato'));
-            return;
-        }
-        
-        $file_id = intval($file_anteprima_id);
-        $file_path = get_attached_file($file_id);
-        
-        if (!$file_path || !file_exists($file_path)) {
-            wp_send_json_error(array('message' => 'File del documento non trovato'));
-            return;
-        }
-        
-        // Aggiungi il tipo di richiesta se specificato
+        // Gestione per documenti già presenti in piattaforma 
+        $file_data = get_file_path();
         if (isset($_POST['request_type'])) {
             $config['request_type'] = sanitize_text_field($_POST['request_type']);
         }
         error_log('Request type: ' . $config['request_type']);
-        
-    } else {
-        // Documento caricato tramite upload
-        if (!isset($_POST['file_id'])) {
-            wp_send_json_error(array('message' => 'File del documento non trovato'));
+        if (is_wp_error($file_data)) {
+            wp_send_json_error(array('message' => 'File non trovato'));
             return;
         }
-
-        $file_id = intval($_POST['file_id']);
-        $file_path = get_attached_file($file_id);
-
-        if (!$file_path || !file_exists($file_path)) {
-            wp_send_json_error(array('message' => 'File del documento non trovato'));
-            return;
-        }
-    }
+        $file_id = $file_data['file_id'];
+        $file_path = $file_data['file_path'];
 
     //6.Calcola costo in punti
     $base_points_cost = ai_calcola_prezzo_punti_per_file($file_id);
@@ -116,56 +81,8 @@ function handle_generate_quiz() {
     }
 
     // Verifica che l'endpoint Flask sia raggiungibile prima di creare il job e scalare punti
-    $api_url = FLASK_QUIZ_API_URL_HEALTH;
-    $health_check = wp_remote_get($api_url, array('timeout' => 5, 'blocking' => true));
-
-    //Controlla se il servizio è disponibile
-    if (is_wp_error($health_check) || (isset($health_check['response']['code']) && intval($health_check['response']['code']) >= 500)) {
-        // Servizio non disponibile
-        $admins = get_users(array('role' => 'administrator', 'fields' => array('user_email','display_name')));
-        $site_name = get_bloginfo('name');
-        $current_user = wp_get_current_user();
-        $user_email = isset($current_user->user_email) ? $current_user->user_email : '';
-        $user_id = get_current_user_id();
-
-        if (is_wp_error($health_check)) {
-            $error_details = esc_html($health_check->get_error_message());
-            $http_code = 'n/a';
-        } else {
-            $http_code = isset($health_check['response']['code']) ? intval($health_check['response']['code']) : 'unknown';
-            $error_details = 'HTTP status: ' . $http_code;
-        }
-
-        $subject = sprintf('[%s] Servizio AI non disponibile', $site_name);
-
-        // Costruzione messaggio Html
-        $html_message = '<div style="font-family:Arial,sans-serif;color:#333;">';
-        $html_message .= '<h2 style="color:#2c3e50;">Servizio AI non raggiungibile</h2>';
-        $html_message .= '<p>Il servizio di generazione quiz (Flask) non è raggiungibile.</p>';
-        $html_message .= '<table cellpadding="6" cellspacing="0" style="border:1px solid #eee;border-collapse:collapse;background:#fafafa;">';
-        $html_message .= '<tr><td><strong>URL controllato</strong></td><td>' . esc_html($api_url) . '</td></tr>';
-        $html_message .= '<tr><td><strong>Ora</strong></td><td>' . esc_html(date('Y-m-d H:i:s')) . '</td></tr>';
-        $html_message .= '<tr><td><strong>Utente</strong></td><td>' . esc_html($user_email) . ' (ID: ' . intval($user_id) . ')</td></tr>';
-        $html_message .= '<tr><td><strong>Dettagli errore</strong></td><td>' . esc_html($error_details) . '</td></tr>';
-        $html_message .= '</table>';
-        $html_message .= '<p>Si prega di verificare lo stato del servizio Flask MineQuiz e riavviarlo se necessario.</p>';
-        $html_message .= '</div>';
-
-        // Invio Email in caso di errore
-        $headers = array('Content-Type: text/html; charset=UTF-8');
-
-        if (!empty($admins)) {
-            foreach ($admins as $admin) {
-                $to = isset($admin->user_email) ? $admin->user_email : '';
-                if (!empty($to)) {
-                    wp_mail($to, $subject, $html_message, $headers);
-                }
-            }
-        }
-
-        error_log('Flask health check failed: ' . $error_details);
-
-        wp_send_json_error(array('message' => 'Servizio di generazione non disponibile al momento. Riprova più tardi. Nessun punto è stato addebitato.'));
+    if(!check_health('quiz')) {
+        wp_send_json_error(array('message' => 'Servizio di generazione quiz non disponibile al momento. Riprova più tardi. Nessun punto è stato addebitato.'));
         return;
     }
 
@@ -196,59 +113,14 @@ function handle_generate_quiz() {
         }
 
         //6.1.GESTIONE PUNTI - Solo dopo che Flask ha generato con successo il quiz
-        try {
-            $sistema_pro = function_exists('get_sistema_punti') ? get_sistema_punti('pro') : null;
-            if (!$sistema_pro){
-                throw new Exception('Sistema punti Pro non disponibile');
-            }
-
-            // Determina il nome del file per il log
-            $file_name_for_log = '';
-            try {
-                // Se il file è associato a un prodotto della piattaforma
-                if (function_exists('get_product_id_by_file_id')) {
-                    $maybe_product = get_product_id_by_file_id($file_id);
-                    if ($maybe_product) {
-                        $prod = get_post($maybe_product);
-                        if ($prod && !empty($prod->post_title)) {
-                            $file_name_for_log = $prod->post_title;
-                        }
-                    }
-                }
-
-                // Se non trovato come prodotto, prova a leggere il titolo dell'allegato
-                if (empty($file_name_for_log)) {
-                    $attachment = get_post($file_id);
-                    if ($attachment && !empty($attachment->post_title)) {
-                        $file_name_for_log = $attachment->post_title;
-                    }
-                }
-
-                // Fallback: usa il nome del file dal percorso
-                if (empty($file_name_for_log)) {
-                    $file_name_for_log = basename($file_path);
-                }
-            } catch (Exception $e) {
-                // se qualcosa va storto, fallback al basename
-                $file_name_for_log = basename($file_path);
-            }
-
-            // Crea array per il log
-            $data_log = array(
-                'description' => 'AI: Generazione quiz per "' . sanitize_text_field($file_name_for_log) . '"',
-                'hidden_to_user' => false,
-            );
-
-            // Rimuove i punti dal wallet dell'utente SOLO se tutto è andato a buon fine
-            $sistema_pro->rimuovi_punti(get_current_user_id(), intval($points_cost), $data_log);
-        } catch (Exception $e) {
-            // Elimina il job creato se la decurtazione fallisce
-            if (function_exists('studia_ai_delete_job')) {
-                studia_ai_delete_job($job_id, get_current_user_id());
-            }
-            wp_send_json_error(array('message' => $e->getMessage()));
+             // DEDUZIONE PUNTI PRO
+        $deduct = deduci_punti_pro($file_id, $file_path, $job_id, $points_cost, $config);
+        if(is_wp_error($deduct)) {
+            wp_send_json_error(array('message' => $deduct->get_error_message()));
             return;
         }
+
+
 
         $result = studia_ai_update_job_status($job_id, 'completed', array('result_file' => $quiz_result['json_file_path']));
 
@@ -267,7 +139,8 @@ function handle_generate_quiz() {
             'quiz_data' => $filtered_quiz_data,
             'questions_count' => $num_questions,
             'difficulty' => $difficulty,
-            'job_id' => $job_id // Aggiunge l'ID del job per tracciamento
+            'job_id' => $job_id, // Aggiunge l'ID del job per tracciamento
+            #'is_duplicate' => $existing_job ? true : false
         ]);
 
     } catch (Exception $e) {

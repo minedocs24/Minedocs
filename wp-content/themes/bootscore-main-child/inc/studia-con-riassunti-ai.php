@@ -3,11 +3,11 @@
 if (!defined('ABSPATH')) {
     exit;
 }
-
 // Includi le funzioni per la gestione della coda job
 require_once get_stylesheet_directory() . '/inc/studia-AI/coda-job.php';
 // Funzioni generalizzate
 require_once get_stylesheet_directory() . '/inc/studia-con-ai.php';
+
 
 // Assicura che la costante della tabella job sia definita (se non caricata altrove)
 if (!defined('TABELLA_STUDIA_AI_JOBS')) {
@@ -47,7 +47,7 @@ function handle_generate_summary() {
     //     return;
     // }
 
-    // Gestione per documenti già presenti in piattaforma (FUNZIONE GENERALE DA CREARE NEI FILE DEI VARI SERVIZI)
+    // Gestione per documenti già presenti in piattaforma 
     $file_data = get_file_path();
     if (isset($_POST['request_type'])) {
         $config['request_type'] = sanitize_text_field($_POST['request_type']);
@@ -74,55 +74,8 @@ function handle_generate_summary() {
         return;
     }
 
-    // Verifica che l'endpoint Flask sia raggiungibile prima di creare il job e scalare punti (FUNZIONE GENERALE DA CREARE NEI FILE DEI VARI SERVIZI)
-    $flask_url = FLASK_SUMMARY_API_URL;
-    $health_check = wp_remote_get($flask_url, array('timeout' => 5, 'blocking' => true));
-    if (is_wp_error($health_check) || (isset($health_check['response']['code']) && intval($health_check['response']['code']) >= 500)) {
-        // Service not available -> inform user, no punti scalati
-        $admins = get_users(array('role' => 'administrator', 'fields' => array('user_email','display_name')));
-        $site_name = get_bloginfo('name');
-        $current_user = wp_get_current_user();
-        $user_email = isset($current_user->user_email) ? $current_user->user_email : '';
-        $user_id = get_current_user_id();
-
-        // Dettagli errore
-        if (is_wp_error($health_check)) {
-            $error_details = esc_html($health_check->get_error_message());
-            $http_code = 'n/a';
-        } else {
-            $http_code = isset($health_check['response']['code']) ? intval($health_check['response']['code']) : 'unknown';
-            $error_details = 'HTTP status: ' . $http_code;
-        }
-
-        $subject = sprintf('[%s] Servizio AI non disponibile', $site_name);
-
-        // Costruisci messaggio HTML semplice ma leggibile
-        $html_message  = '<div style="font-family:Arial,sans-serif;color:#333;">';
-        $html_message .= '<h2 style="color:#2c3e50;">Servizio AI non raggiungibile</h2>';
-        $html_message .= '<p>Il servizio di generazione riassunti (Flask) non è raggiungibile.</p>';
-        $html_message .= '<table cellpadding="6" cellspacing="0" style="border:1px solid #eee;border-collapse:collapse;background:#fafafa;">';
-        $html_message .= '<tr><td><strong>URL controllato</strong></td><td>' . esc_html($flask_url) . '</td></tr>';
-        $html_message .= '<tr><td><strong>Ora</strong></td><td>' . esc_html(date('Y-m-d H:i:s')) . '</td></tr>';
-        $html_message .= '<tr><td><strong>Utente</strong></td><td>' . esc_html($user_email) . ' (ID: ' . intval($user_id) . ')</td></tr>';
-        $html_message .= '<tr><td><strong>Dettagli errore</strong></td><td>' . esc_html($error_details) . '</td></tr>';
-        $html_message .= '</table>';
-        $html_message .= '<p>Si prega di verificare lo stato del servizio Flask Summary e riavviarlo se necessario.</p>';
-        $html_message .= '</div>';
-
-        $headers = array('Content-Type: text/html; charset=UTF-8');
-
-        if (!empty($admins)) {
-            foreach ($admins as $admin) {
-                $to = isset($admin->user_email) ? $admin->user_email : '';
-                if (!empty($to)) {
-                    wp_mail($to, $subject, $html_message, $headers);
-                }
-            }
-        }
-
-        error_log('Flask health check failed: ' . $error_details);
-
-        wp_send_json_error(array('message' => 'Servizio di generazione non disponibile al momento. Riprova più tardi. Nessun punto è stato addebitato.'));
+    if(!check_health('summary')) {
+        wp_send_json_error(array('message' => 'Servizio di generazione riassunto non disponibile al momento. Riprova più tardi. Nessun punto è stato addebitato.'));
         return;
     }
 
@@ -143,60 +96,10 @@ function handle_generate_summary() {
         $wpdb->update($table, array('points_cost' => intval($points_cost), 'updated_at' => current_time('mysql')), array('id' => $job_id), array('%d', '%s'), array('%d'));
     }
 
-    // Deduce i punti PRO dal wallet dell'utente (FUNZIONE GENERALE DA CREARE NEI FILE DEI VARI SERVIZI)
-    try {
-        $sistema_pro = function_exists('get_sistema_punti') ? get_sistema_punti('pro') : null;
-        if (!$sistema_pro) {
-            throw new Exception('Sistema punti Pro non disponibile');
-        }
-
-        $request_type = isset($config['request_type']) ? $config['request_type'] : 'summary';
-        $descrizione = 'AI: Generazione ' . ($request_type === 'summary' ? 'riassunto' : $request_type);
-
-        // Determina il nome del file (prodotto della piattaforma o file caricato dall'utente)
-        $file_name_for_log = '';
-        try {
-            // Se il file è associato a un prodotto della piattaforma
-            if (function_exists('get_product_id_by_file_id')) {
-                $maybe_product = get_product_id_by_file_id($file_id);
-                if ($maybe_product) {
-                    $prod = get_post($maybe_product);
-                    if ($prod && !empty($prod->post_title)) {
-                        $file_name_for_log = $prod->post_title;
-                    }
-                }
-            }
-
-            // Se non trovato come prodotto, prova a leggere il titolo dell'allegato
-            if (empty($file_name_for_log)) {
-                $attachment = get_post($file_id);
-                if ($attachment && !empty($attachment->post_title)) {
-                    $file_name_for_log = $attachment->post_title;
-                }
-            }
-
-            // Fallback: usa il nome del file dal percorso
-            if (empty($file_name_for_log)) {
-                $file_name_for_log = basename($file_path);
-            }
-        } catch (Exception $e) {
-            // se qualcosa va storto, fallback al basename
-            $file_name_for_log = basename($file_path);
-        }
-
-        $data_log = array(
-            'description' => $descrizione . ' per "' . sanitize_text_field($file_name_for_log) . '"',
-            'hidden_to_user' => false,
-        );
-
-        // Se lancia eccezione per punti insufficienti o altro, verrà gestita dal catch
-        $sistema_pro->rimuovi_punti(get_current_user_id(), intval($points_cost), $data_log);
-    } catch (Exception $e) {
-        // Elimina il job creato se la decurtazione fallisce
-        if (function_exists('studia_ai_delete_job')) {
-            studia_ai_delete_job($job_id, get_current_user_id());
-        }
-        wp_send_json_error(array('message' => $e->getMessage()));
+    // DEDUZIONE PUNTI PRO
+    $deduct = deduci_punti_pro($file_id, $file_path, $job_id, $points_cost, $config);
+    if(is_wp_error($deduct)) {
+        wp_send_json_error(array('message' => $deduct->get_error_message()));
         return;
     }
 
