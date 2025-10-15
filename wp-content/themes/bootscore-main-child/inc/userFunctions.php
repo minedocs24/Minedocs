@@ -233,7 +233,7 @@ add_action('wp_footer', function() {
         $user_id = get_current_user_id();
         $user_hid = get_user_hash_id($user_id);
         $current_date = date('Y-m-d H:i:s'); // Get the current date and time
-        error_log("Email hash: " . $email_hash . " | User ID hash: " . $user_hid . " | Current date: " . $current_date);
+        // error_log("Email hash: " . $email_hash . " | User ID hash: " . $user_hid . " | Current date: " . $current_date);
         echo '<script>modal_email_verificata();</script>';
         echo '<script>window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
