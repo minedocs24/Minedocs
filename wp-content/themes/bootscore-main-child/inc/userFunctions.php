@@ -229,11 +229,18 @@ add_action('wp_footer', function() {
     if (isset($_GET['msg']) && $_GET['msg'] == 'email-verified') {
         $user = get_userdata(get_current_user_id());
         $email = $user->user_email;
+        $email_hash = hash('sha256', $email);
+        $user_id = get_current_user_id();
+        $user_hid = get_user_hash_id($user_id);
+        $current_date = date('Y-m-d H:i:s'); // Get the current date and time
+        // error_log("Email hash: " . $email_hash . " | User ID hash: " . $user_hid . " | Current date: " . $current_date);
         echo '<script>modal_email_verificata();</script>';
         echo '<script>window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
             \'event\': \'signup\',
-            \'user_email\': \'' . esc_js($email) . '\' // opzionale
+            \'user_email\': \'' . esc_js($email_hash) . '\',
+            \'user_id\': \'' . esc_js($user_hid) . '\', // Added user ID hash
+            \'sign_up_date\': \'' . esc_js($current_date) . '\'
             });
             </script>';
     }
