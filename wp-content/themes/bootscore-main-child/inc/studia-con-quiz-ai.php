@@ -50,18 +50,18 @@ function handle_generate_quiz() {
     }
 
     //5.Conversione: file_id -> file_path
-        // Gestione per documenti già presenti in piattaforma 
-        $file_data = get_file_path();
-        if (isset($_POST['request_type'])) {
-            $config['request_type'] = sanitize_text_field($_POST['request_type']);
-        }
-        error_log('Request type: ' . $config['request_type']);
-        if (is_wp_error($file_data)) {
-            wp_send_json_error(array('message' => 'File non trovato'));
-            return;
-        }
-        $file_id = $file_data['file_id'];
-        $file_path = $file_data['file_path'];
+    // Gestione per documenti già presenti in piattaforma 
+    $file_data = get_file_path();
+    if (isset($_POST['request_type'])) {
+        $config['request_type'] = sanitize_text_field($_POST['request_type']);
+    }
+    error_log('Request type: ' . $config['request_type']);
+    if (is_wp_error($file_data)) {
+        wp_send_json_error(array('message' => 'File non trovato'));
+        return;
+    }
+    $file_id = $file_data['file_id'];
+    $file_path = $file_data['file_path'];
 
     //6.Calcola costo in punti
     $base_points_cost = ai_calcola_prezzo_punti_per_file($file_id);

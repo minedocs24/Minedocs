@@ -760,9 +760,17 @@ function handle_get_dynamic_price() {
 
     // GESTIONE FILE
     $file_data = get_file_path();
-    if (!$file_data || !is_array($file_data) || empty($file_data['file_path'])) {
+    if (is_wp_error($file_data)) {
         if (is_callable($notify_admin)) {
-            $notify_admin('Parametro file non specificato o file non trovato (helper get_file_path)');
+            $notify_admin('Parametro file non specificato o file non trovato (helper get_file_path)', array('wp_error' => $file_data->get_error_message()));
+        }
+        wp_send_json_error(['message' => $file_data->get_error_message()]);
+        return;
+    }
+
+    if (!is_array($file_data) || empty($file_data['file_path'])) {
+        if (is_callable($notify_admin)) {
+            $notify_admin('Parametro file non specificato o file non trovato (helper get_file_path) - formato inatteso', array('file_data' => $file_data));
         }
         wp_send_json_error(['message' => 'File del documento non trovato']);
         return;
@@ -803,55 +811,51 @@ function get_file_path() {
     $file_id = null;
     error_log('DEBUG get_file_path: $_POST = ' . print_r($_POST, true));
 
+    // Gestione per documenti già presenti in piattaforma (documento di vendita)
     if (isset($_POST['document_id']) && !empty($_POST['document_id'])) {
         error_log('DEBUG: Processing document_id: ' . $_POST['document_id']);
         // Documento già presente in piattaforma
         $document_id = sanitize_text_field($_POST['document_id']);
         $product_id = get_product_id_by_hash($document_id);
-        
+
         if (!$product_id) {
-            #wp_send_json_error(array('message' => 'Documento non trovato'));
             error_log('DEBUG: Product ID not found for document_id: ' . $document_id);
-            return;
+            return new WP_Error('document_not_found', 'Documento non trovato');
         }
-        
+
         // Recupera il file_id dal prodotto
         $file_anteprima_id = get_post_meta($product_id, '_file_anteprima', true);
         if (!$file_anteprima_id) {
-            #wp_send_json_error(array('message' => 'File del documento non trovato'));
             error_log('DEBUG: File anteprima ID not found for product_id: ' . $product_id);
-            return;
+            return new WP_Error('file_meta_missing', 'File del documento non trovato');
         }
-        
+
         $file_id = intval($file_anteprima_id);
         $file_path = get_attached_file($file_id);
-        
+
         if (!$file_path || !file_exists($file_path)) {
-            #wp_send_json_error(array('message' => 'File del documento non trovato'));
             error_log('DEBUG: File path not found for file_id: ' . $file_id);
-            return;
+            return new WP_Error('file_not_found', 'File del documento non trovato');
         }
-        
+
         // Aggiungi il tipo di richiesta se specificato
         if (isset($_POST['request_type'])) {
             $config['request_type'] = sanitize_text_field($_POST['request_type']);
         }
         error_log('Request type: ' . $config['request_type']);
-        
+
     } else {
         // Documento caricato tramite upload
         if (!isset($_POST['file_id'])) {
-            #wp_send_json_error(array('message' => 'File del documento non trovato'));
             error_log('DEBUG: File path not found for file_id: ' . $file_id);
-            return;
+            return new WP_Error('file_id_missing', 'File del documento non trovato');
         }
 
         $file_id = intval($_POST['file_id']);
         $file_path = get_attached_file($file_id);
 
         if (!$file_path || !file_exists($file_path)) {
-            #wp_send_json_error(array('message' => 'File del documento non trovato'));
-            return;
+            return new WP_Error('file_not_found', 'File del documento non trovato');
         }
     }
 
@@ -935,7 +939,7 @@ function check_health($service_type) {
         error_log('Flask health check failed: ' . $error_details);
 
         #wp_send_json_error(array('message' => 'Servizio di generazione non disponibile al momento. Riprova più tardi. Nessun punto è stato addebitato.'));
-        return;
+        return false;
     }
     return true;
 }
