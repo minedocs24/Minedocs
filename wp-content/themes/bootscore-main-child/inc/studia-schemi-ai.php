@@ -336,41 +336,4 @@ function save_map_png_file($tempFile_path, $job_id) {
     return false;
 }
 
-// -----------------TEST FLASK HEALTH-----------------
-/*function handle_test_flask_health() {
-    // Controlla che l'utente sia loggato
-    if (!is_user_logged_in()) {
-        wp_send_json_error(['message' => 'Non autorizzato.']);
-        return;
-    }
 
-    // Controlla il nonce per la sicurezza ajax
-    check_ajax_referer('studia_con_ai_nonce', 'nonce');
-
-    $flask_url = FLASK_MAP_API_URL_HEALTH;
-    $response = wp_remote_get($flask_url, array(
-        'timeout' => 10,
-        'blocking' => true
-    ));
-
-    if (is_wp_error($response)) {
-        wp_send_json_error(['message' => 'Errore di connessione: ' . $response->get_error_message()]);
-        return;
-    }
-
-    $http_code = wp_remote_retrieve_response_code($response);
-    $body = wp_remote_retrieve_body($response);
-
-    if ($http_code >= 200 && $http_code < 300) {
-        wp_send_json_success(['message' => 'Flask attivo (HTTP ' . $http_code . ')', 'response' => $body]);
-    } else {
-        wp_send_json_error(['message' => 'Flask non risponde correttamente (HTTP ' . $http_code . ')']);
-    }
-}
-
-// Hook AJAX per WordPress
-
-add_action('wp_ajax_test_flask_health', 'handle_test_flask_health');
-add_action('wp_ajax_nopriv_test_flask_health', 'handle_test_flask_health');
-
-*/
