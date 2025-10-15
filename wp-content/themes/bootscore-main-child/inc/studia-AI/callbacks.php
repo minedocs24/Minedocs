@@ -49,7 +49,7 @@ function handle_summary_completed_callback() {
         $pdf_url = '';
         if ($pdf_riassunto_path) {
             // Costruisci l'URL assumendo che i file siano serviti da Flask
-            $pdf_url = 'http://localhost:4999/download/' . urlencode($pdf_riassunto_path);
+            $pdf_url = FLASK_SUMMARY_API_URL_DOWNLOAD . urlencode($pdf_riassunto_path);
         }
         
         // Prepara i dati aggiuntivi per l'aggiornamento

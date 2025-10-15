@@ -1348,7 +1348,7 @@ jQuery(document).ready(function($) {
                         // Mostra messaggio di successo
                         showCustomAlert(
                             "Download avviato!",
-                            "Il download del riassunto è stato avviato con successo.",
+                            "Il download è stato avviato con successo.",
                             "bg-success btn-success"
                         );
                     } else {
