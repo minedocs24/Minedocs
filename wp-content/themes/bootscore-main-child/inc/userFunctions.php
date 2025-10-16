@@ -104,6 +104,86 @@ function get_user_documents_sold_count($user_id) {
 add_action('wp_ajax_change_user_password', 'change_user_password');
 add_action('wp_ajax_nopriv_change_user_password', 'change_user_password');
 
+// Upload avatar utente via AJAX
+add_action('wp_ajax_upload_user_avatar', 'upload_user_avatar');
+
+function upload_user_avatar() {
+    // Consenti solo agli utenti loggati
+    if (!is_user_logged_in()) {
+        wp_send_json_error(['message' => 'Non autorizzato.']);
+        wp_die();
+    }
+
+    // Verifica nonce
+    check_ajax_referer('nonce_upload_avatar', 'security');
+
+    if (!isset($_FILES['avatar'])) {
+        wp_send_json_error(['message' => 'Nessun file caricato.']);
+        wp_die();
+    }
+
+    $file = $_FILES['avatar'];
+
+    // Validazione dimensione (max 5MB)
+    $max_size_bytes = 5 * 1024 * 1024;
+    if (!empty($file['size']) && $file['size'] > $max_size_bytes) {
+        wp_send_json_error(['message' => 'L\'immagine supera i 5MB.']);
+        wp_die();
+    }
+
+    // Includi funzioni WP per upload media
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+
+    // Consenti soli tipi immagine
+    $allowed_mimes = array(
+        'jpg|jpeg' => 'image/jpeg',
+        'png'      => 'image/png',
+        'webp'     => 'image/webp',
+    );
+
+    // Verifica tipo file
+    $check = wp_check_filetype_and_ext($file['tmp_name'], $file['name'], $allowed_mimes);
+    if (!$check['ext'] || !$check['type']) {
+        wp_send_json_error(['message' => 'Formato non supportato. Usa JPG, PNG o WEBP.']);
+        wp_die();
+    }
+
+    // Esegui upload
+    $overrides = array(
+        'test_form' => false,
+        'mimes'     => $allowed_mimes,
+    );
+    $movefile = wp_handle_upload($file, $overrides);
+
+    if (isset($movefile['error'])) {
+        wp_send_json_error(['message' => 'Errore upload: ' . $movefile['error']]);
+        wp_die();
+    }
+
+    // Crea attachment in libreria media (facoltativo ma utile)
+    $attachment = array(
+        'post_mime_type' => $movefile['type'],
+        'post_title'     => sanitize_file_name(basename($movefile['file'])),
+        'post_content'   => '',
+        'post_status'    => 'inherit'
+    );
+
+    $attach_id = wp_insert_attachment($attachment, $movefile['file']);
+    if ($attach_id) {
+        $attach_data = wp_generate_attachment_metadata($attach_id, $movefile['file']);
+        wp_update_attachment_metadata($attach_id, $attach_data);
+    }
+
+    // Salva URL come meta utente
+    $user_id = get_current_user_id();
+    update_user_meta($user_id, 'custom_avatar', esc_url_raw($movefile['url']));
+
+    wp_send_json_success(['message' => 'Avatar aggiornato con successo.', 'url' => esc_url($movefile['url'])]);
+    wp_die();
+}
+
 function change_user_password() {
     // Verifica le autorizzazioni
     if (!is_user_logged_in()) {

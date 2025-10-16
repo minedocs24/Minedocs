@@ -155,7 +155,7 @@ _iub.csConfiguration = {"askConsentAtCookiePolicyUpdate":true,"googleAdditionalC
                             <!-- Profilo -->
                             <div class="dropdown d-none d-lg-block me-2">
                                 <a href="<?php echo PROFILO_UTENTE_PAGE; ?>" class="bottom-nav-item" id="dropdownUser1" data-bs-toggle="dropdown">
-                                    <img src="<?php echo get_user_avatar_url(get_current_user_id()) ?>" alt="mdo" width="30" height="30" class="rounded-circle">
+                                    <img src="<?php echo get_user_avatar_url(get_current_user_id()) ?>" alt="mdo" width="30" height="30" class="rounded-circle user-avatar">
                                     <span>Profilo</span>
                                 </a>
                                 <!-- <button class="btn btn-primary" id="dropdownUser1" data-bs-toggle="dropdown">

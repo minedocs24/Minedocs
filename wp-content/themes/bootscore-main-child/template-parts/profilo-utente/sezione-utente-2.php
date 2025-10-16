@@ -97,8 +97,12 @@ if (!empty($product_ids)) {
 <div class="profile-header">
     <div class="profile-main">
         <div class="profile-left">
-            <div class="profile-avatar-container">
-                <img src="<?php echo get_user_avatar_url($user->ID) ?>" alt="Immagine profilo" class="profile-avatar">
+            <div class="profile-avatar-container text-center">
+                <img id="user-avatar-img" src="<?php echo get_user_avatar_url($user->ID) ?>" alt="Immagine profilo" class="profile-avatar mb-2">
+                <div>
+                    <input type="file" id="input-avatar-file" accept="image/png,image/jpeg,image/webp" hidden>
+                    <button type="button" id="btn-change-avatar" class="btn btn-sm btn-outline-primary">Cambia foto</button>
+                </div>
             </div>
             <div class="profile-info">
                 <h1 class="profile-name"><?php echo $user_name; ?></h1>
