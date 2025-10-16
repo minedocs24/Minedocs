@@ -5166,3 +5166,12 @@ footer {
         height: 18px;
     }
 }
+
+/* Forza avatar utente sempre in cerchio 30x30 */
+.user-avatar {
+    width: 35px !important;
+    height: 35px !important;
+    object-fit: cover;
+    border-radius: 50% !important;
+    display: inline-block;
+}
