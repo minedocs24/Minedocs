@@ -321,6 +321,18 @@ function enqueue_user_profile_scripts() {
         ));
     }
 }
+
+function enqueue_user_avatar_scripts() {
+    // carica lo script avatar quando rileviamo elementi UI su pagina profilo o nuovo profilo
+    if (is_page('profilo-utente') || is_page('nuovo-profilo-utente')) {
+        wp_enqueue_script('user-avatar-script', get_stylesheet_directory_uri() . '/assets/js/user-avatar.js', array('jquery'), null, true);
+        wp_localize_script('user-avatar-script', 'env_user_avatar', array(
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'nonce_upload_avatar' => wp_create_nonce('nonce_upload_avatar')
+        ));
+    }
+}
+add_action('wp_enqueue_scripts', 'enqueue_user_avatar_scripts');
 add_action('wp_enqueue_scripts', 'enqueue_user_profile_scripts');
 
 function enqueue_user_settings_scripts($slug, $name, $args) {
